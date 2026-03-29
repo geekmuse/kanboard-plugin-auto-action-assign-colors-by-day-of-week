@@ -1,7 +1,7 @@
 ---
 date_created: 2026-03-29
 date_modified: 2026-03-29
-status: draft
+status: active
 audience: both
 cross_references:
   - docs/002-development-guide.md
@@ -13,8 +13,10 @@ cross_references:
 ## Overview
 
 `AssignColorsByDayOfWeek` is a Kanboard plugin that automatically assigns task card
-colors based on the day of the week of a task's due date, triggered at task creation
-time. Colors are configured per-project via Kanboard's standard automatic action UI.
+colors based on the **day of the week of a task's due date**, triggered at task
+creation time. The color is determined by which day of the week the due date falls on
+— not the creation date. Colors are configured per-project via Kanboard's standard
+automatic action UI.
 
 ## System Context
 
@@ -47,13 +49,17 @@ single automatic action that Kanboard's `ActionManager` invokes when tasks are c
 ## Data Flow
 
 1. A task is created in Kanboard (`TaskModel::EVENT_CREATE` fires)
-2. Kanboard's ActionManager calls `hasRequiredCondition()` on all registered actions
-3. The action verifies: task has the default color, task has a non-zero due date, and
-   the project has at least one `AssignColorsByDayOfWeek` action configured
-4. If conditions are met, `doAction()` is called
-5. The action queries `action_has_params` to retrieve the day→color mapping for the project
-6. The due date timestamp is converted to a day of week (e.g., "Monday") in the
-   `America/New_York` timezone
+2. Kanboard's `ActionManager` pre-populates `$this->params` with this action instance's
+   configured day→color and Timezone values from `action_has_params`, then calls
+   `hasRequiredCondition()` on the action
+3. The action verifies: task has the default color; task has a non-zero due date; and the
+   color configured for that due date's day of week (resolved via `resolveDayOfWeek()` +
+   `getParam($day)`) is a non-empty, non-sentinel value
+4. If the condition passes, `doAction()` is called unconditionally
+5. `getColorForDay()` reads the color for the resolved day via `$this->getParam($day)` —
+   no additional DB query is needed because `ActionManager` has already populated the params
+6. The due date timestamp is converted to an English day name (e.g., `'Monday'`) using
+   the configured Timezone parameter (falls back to `date_default_timezone_get()`)
 7. The resolved color ID is applied to the task via `TaskModificationModel::update()`
 
 ## Key Design Decisions
@@ -62,8 +68,10 @@ single automatic action that Kanboard's `ActionManager` invokes when tasks are c
 |----------|-----------|-----|
 | PHP as primary language | Required by the Kanboard plugin API | — |
 | Extend `Kanboard\Action\Base` | Provides DI container access and standard action lifecycle hooks | — |
-| Read config from `action_has_params` at runtime | Reuses Kanboard's built-in action parameter storage; no separate config table needed | — |
-| Hardcoded `America/New_York` timezone | Initial implementation; should be made configurable | `docs/adrs/` |
+| Use `$this->getParam()` API (not raw SQL) | `ActionManager` pre-populates `$this->params` before `execute()` is called; `getParam()` reads the current action instance's parameters without extra DB queries | — |
+| Fixed English parameter keys (no `t()` on keys) | `DateTime::format('l')` always returns English day names; using translated keys causes an unresolvable lookup mismatch in non-English installations | — |
+| Configurable Timezone parameter | Replaces hardcoded `America/New_York`; defaults to `date_default_timezone_get()` so a task due at midnight is classified by the server/user's local day, not ET | — |
+| Color determined by **due date's** day of week | Users configure "I want Monday-due tasks to be red"; the action fires on creation so the relevant date is the due date, not the creation timestamp | — |
 
 > For detailed decision records, see [`docs/adrs/`](adrs/).
 
@@ -75,7 +83,7 @@ single automatic action that Kanboard's `ActionManager` invokes when tasks are c
 |------------|---------|---------|
 | Kanboard core | Plugin API, ActionManager, TaskModificationModel, ColorModel | `>=1.2.19` |
 | PHP | Runtime language | `>=7.0` (implied by Kanboard 1.2.19) |
-| PDO | Raw SQL queries against `actions` and `action_has_params` tables | Built-in |
+| PDO | Transitively available but not used directly — all parameter access is via `$this->getParam()` | Built-in |
 
 ### Development
 
@@ -100,7 +108,8 @@ single automatic action that Kanboard's `ActionManager` invokes when tasks are c
 
 ## Future Considerations
 
-- Make timezone configurable (currently hardcoded to `America/New_York`)
-- Add Saturday/Sunday support (currently only Mon–Fri are configurable)
-- Use prepared statements instead of raw string-interpolated SQL queries
 - Support `EVENT_MOVE_COLUMN` or `EVENT_UPDATE` in addition to `EVENT_CREATE`
+- Allow a second trigger condition based on the task **creation** date's day of week
+  (alternative semantics that some users expect based on the plugin name)
+- Add a UI hint in the action description surfacing the configured timezone so users
+  see which timezone is active when editing an action instance

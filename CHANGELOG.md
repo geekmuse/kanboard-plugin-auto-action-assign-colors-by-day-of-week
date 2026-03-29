@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- **[US-008]** Clarify `date_due` semantics in description and documentation (closes GAP-12): `getDescription()` now explicitly says "based on the day of the week of the task's due date"; `README.md` usage walkthrough updated to call out that color is driven by the **due date's** day of week (not the creation date); `docs/001-architecture.md` data flow, key design decisions, and future considerations updated to reflect the corrected implementation; `docs/001-architecture.md` status bumped to `active`
 - **[US-007]** Add PHPDoc blocks to all classes and methods (closes GAP-09): class-level `@package`/`@author` tags on both `Plugin.php` and `Action/AssignColorsByDayOfWeek.php`; full `@param`/`@return` annotations on every public and private method; existing class PHPDoc on `AssignColorsByDayOfWeek` extended with `@package` and `@author`; `@property \Kanboard\Model\ColorModel $colorModel` already present from US-006
 - **[US-001]** Replace raw SQL helpers with `getParam()` API: removed `projectHasCustomColors()` and `getColorSettings()` private methods; `getColorForDay()` now reads colors via `$this->getParam(t($dayOfWeek))` with no DB queries (fixes GAP-01 SQL injection, GAP-04 bypassing ActionManager API)
 - **[US-001]** Remove `use PDO` import (no longer needed)
