@@ -29,8 +29,8 @@ git clone ssh://git@git.bradleyscampbell.net:10022/geekmuse-kanboard/plugin-auto
 git clone ssh://git@git.bradleyscampbell.net:10022/geekmuse-kanboard/plugin-auto-action-assign-colors-by-day-of-week.git
 cd plugin-auto-action-assign-colors-by-day-of-week
 
-# Install dev dependencies (if composer.json is added)
-composer install --dev
+# Install dev dependencies
+composer install
 
 # Verify PHP syntax on all files
 find . -name "*.php" -not -path "./vendor/*" | xargs php -l
@@ -74,14 +74,11 @@ find . -name "*.php" -not -path "./vendor/*" | xargs php -l
 ### 4. Lint & Format
 
 ```bash
-# Check PSR-12 compliance
-./vendor/bin/phpcs --standard=PSR12 .
+# Check PSR-12 compliance (via Docker — no local PHP needed)
+bash scripts/docker-phpcs.sh
 
-# Auto-fix formatting
-./vendor/bin/php-cs-fixer fix .
-
-# Lint (alias)
-./vendor/bin/phpcs --standard=PSR12 .
+# Syntax check
+bash scripts/docker-lint.sh
 ```
 
 ### 5. Commit
@@ -106,6 +103,20 @@ plugin-auto-action-assign-colors-by-day-of-week/
 ├── Plugin.php                    # Plugin entry point — registers action, metadata
 ├── Action/
 │   └── AssignColorsByDayOfWeek.php  # Core action: event handling, color resolution
+├── tests/
+│   ├── Action/
+│   │   └── AssignColorsByDayOfWeekTest.php  # PHPUnit unit tests
+│   ├── Stubs/
+│   │   └── KanboardStubs.php     # Minimal Kanboard class stubs for local dev
+│   └── bootstrap.php             # PHPUnit bootstrap (loads stubs or Kanboard autoloader)
+├── scripts/
+│   ├── docker-lint.sh            # PHP syntax check via kanboard/kanboard image
+│   ├── docker-phpcs.sh           # PSR-12 check via cytopia/phpcs image
+│   ├── docker-phpstan.sh         # Static analysis via php:8.4-cli image
+│   └── docker-test.sh            # PHPUnit via php:8.4-cli image
+├── .gitea/
+│   └── workflows/
+│       └── ci.yml                # Gitea Actions CI pipeline
 ├── docs/
 │   ├── 001-architecture.md       # System architecture
 │   ├── 002-development-guide.md  # This file
@@ -113,22 +124,28 @@ plugin-auto-action-assign-colors-by-day-of-week/
 │   ├── specs/                    # Feature specifications
 │   ├── adrs/                     # Architecture Decision Records
 │   ├── references/               # API docs, glossary
-│   ├── tasks/                    # Work items
+│   ├── tasks/
+│   │   └── 001-gap-analysis.md   # Gap analysis and remediation task list (complete)
 │   └── research/                 # Spikes, investigations
 ├── README.md
 ├── AGENTS.md
 ├── CLAUDE.md
 ├── CHANGELOG.md
+├── LICENSE
+├── composer.json                 # Dev dependencies (phpunit, phpstan)
+├── phpunit.xml.dist              # PHPUnit configuration
+├── phpstan.neon                  # PHPStan configuration (level 5)
 ├── prek.toml                     # Git hook configuration
 ├── .editorconfig
-└── .gitattributes
+├── .gitattributes
+└── .gitignore
 ```
 
 ## Testing Strategy
 
 | Layer | Tool | Location |
 |-------|------|----------|
-| Unit tests | PHPUnit | `tests/` |
+| Unit tests | PHPUnit 11 | `tests/Action/` |
 | Integration tests | Manual / Kanboard test instance | Kanboard plugin sandbox |
 | Static analysis | PHPStan | Project root |
 
@@ -144,10 +161,10 @@ plugin-auto-action-assign-colors-by-day-of-week/
 
 | Tool | Purpose | Command |
 |------|---------|---------|
-| PHP-CS-Fixer / phpcs | PSR-12 formatting | `./vendor/bin/php-cs-fixer fix .` |
-| PHPStan | Static analysis (type safety) | `./vendor/bin/phpstan analyse` |
-| PHPUnit | Unit testing | `./vendor/bin/phpunit` |
-| `php -l` | Syntax check (no deps required) | `find . -name "*.php" | xargs php -l` |
+| cytopia/phpcs (Docker) | PSR-12 check | `bash scripts/docker-phpcs.sh` |
+| PHPStan | Static analysis (level 5) | `bash scripts/docker-phpstan.sh` |
+| PHPUnit 11 | Unit testing | `bash scripts/docker-test.sh` |
+| php -l (Docker) | Syntax check | `bash scripts/docker-lint.sh` |
 
 ## Git Hooks
 
