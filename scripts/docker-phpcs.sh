@@ -1,18 +1,17 @@
 #!/usr/bin/env bash
-# Run PHP_CodeSniffer (PSR-12) via a Composer-based image.
-# NOTE: entrypoint MUST be overridden — default starts Apache and runs forever.
-# Requires composer.json + vendor/ to be present (see docs/tasks/001-gap-analysis.md T-12).
+# Run PHP_CodeSniffer (PSR-12) via the cytopia/phpcs:latest Docker image.
+# NOTE: use --entrypoint /usr/bin/phpcs — the default entrypoint in this image
+#       resolves phpcs via a wrapper that behaves differently inside the container.
+# No vendor/ dependency — cytopia/phpcs includes phpcs and its standard library.
 set -euo pipefail
 
 PLUGIN_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
-if [ ! -f "$PLUGIN_DIR/vendor/bin/phpcs" ]; then
-  echo "ERROR: vendor/bin/phpcs not found. Run 'composer install' first."
-  exit 1
-fi
-
 docker run --rm \
-  --entrypoint /bin/sh \
+  --entrypoint /usr/bin/phpcs \
   -v "$PLUGIN_DIR":/plugin \
-  kanboard/kanboard \
-  -c "cd /plugin && vendor/bin/phpcs --standard=PSR12 --extensions=php Plugin.php Action/"
+  cytopia/phpcs:latest \
+  --standard=PSR12 \
+  --extensions=php \
+  /plugin/Plugin.php \
+  /plugin/Action/
