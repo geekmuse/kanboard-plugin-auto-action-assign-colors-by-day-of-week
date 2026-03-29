@@ -54,6 +54,30 @@ Corrective Plan: N/A
   - US-010 (composer.json + PHPUnit tests) is the next open story and is now unblocked
 ---
 
+## 2026-03-29 06:32 - US-010
+Session: iter-1ba16fdd
+Review Outcome: PASS
+Trajectory: ON_TRACK
+Trajectory Notes: N/A
+Corrective Plan: N/A
+- Created `composer.json` with `phpunit/phpunit ^11.0` and `phpstan/phpstan ^1.10` as dev dependencies; PSR-4 autoloading for `Kanboard\Plugin\AssignColorsByDayOfWeek\` (plugin root) and `Kanboard\Plugin\AssignColorsByDayOfWeek\Tests\` (tests/) (closes GAP-13 infrastructure)
+- Created `phpunit.xml.dist` (PHPUnit 11 schema) with bootstrap, testdox output, and `<source>` coverage configuration
+- Created `phpstan.neon` at level 5 with `bootstrapFiles: [tests/bootstrap.php]`
+- Created `tests/bootstrap.php`: defines `t()` stub, conditionally loads Kanboard's autoloader at `/var/www/app/vendor/autoload.php` (Docker) or falls back to `tests/Stubs/KanboardStubs.php` (local)
+- Created `tests/Stubs/KanboardStubs.php`: minimal stubs for `Kanboard\Core\Base`, `Kanboard\Action\Base`, `Kanboard\Core\Plugin\Base`, `Kanboard\Core\Action\ActionManager`, `Kanboard\Model\TaskModel`, `Kanboard\Model\ColorModel`, `Kanboard\Model\TaskModificationModel` — stubs match the real Kanboard classes' method signatures (no added return types on abstract methods) to prevent PHP 8 covariance errors
+- Created `tests/Action/AssignColorsByDayOfWeekTest.php`: 6 tests (8 assertions) all passing via `php:8.4-cli` Docker image
+- Used `TestableAssignColorsByDayOfWeek` inner class to bypass Pimple\Container constructor dependency — overrides `__construct(array $services)` and `__get(string $name)`; parent `setParam`/`getParam` work correctly because `private $params = []` in `Action\Base` is initialized by PHP property defaults (not constructor)
+- Updated `docker-test.sh` and `docker-phpstan.sh` to use `php:8.4-cli` instead of `kanboard/kanboard` — the kanboard image lacks the `tokenizer` extension which PHPUnit 11 and PHPStan require
+- Added `.gitignore` (vendor/, composer.lock, PHPStan/PHPUnit caches)
+- Files changed: `composer.json` (new), `phpunit.xml.dist` (new), `phpstan.neon` (new), `tests/bootstrap.php` (new), `tests/Stubs/KanboardStubs.php` (new), `tests/Action/AssignColorsByDayOfWeekTest.php` (new), `.gitignore` (new), `scripts/docker-test.sh`, `scripts/docker-phpstan.sh`, `CHANGELOG.md`
+- **Learnings for future iterations:**
+  - `kanboard/kanboard` Docker image is MISSING the `tokenizer` extension — PHPUnit 11 and PHPStan BOTH require it. Use `php:8.4-cli` for test/phpstan runners; only use kanboard image for PHP lint and PHPCS
+  - `TestableAssignColorsByDayOfWeek` pattern (subclass that overrides `__construct` + `__get`): PHP 8 allows changing constructor signature in subclasses without type errors; `private $params = []` on `Action\Base` is always initialized by PHP class property defaults regardless of whether `parent::__construct()` is called
+  - Stub abstract method signatures must NOT add return type hints that the real Kanboard abstract methods lack — adding `: string` to `abstract getDescription()` causes fatal covariance error when the concrete action has no return type
+  - Stubs for local dev: Composer will warn about PSR-4 mismatches for the stub classes (different namespace), but this is fine because stubs are included via explicit `require_once` in `tests/bootstrap.php`, not via the autoloader
+  - US-011 (CI pipeline) is now unblocked and is the final open story
+---
+
 ## Codebase Patterns
 - **Timezone resolution helper**: Extract `DateTime` construction + `format('l')` into a shared `resolveDayOfWeek($ts)` private method whenever both `hasRequiredCondition()` and `getColorForDay()` need the day name. This avoids timezone drift and keeps the configurable timezone read in one place.
 - **Timezone parameter list**: `DateTimeZone::listIdentifiers(DateTimeZone::ALL)` + `array_combine($ids, $ids)` provides the full IANA identifier list as a select dropdown. Prepend `'' => t('Server default')` as a sentinel; `resolveDayOfWeek()` falls back to `date_default_timezone_get()` when the param is empty.
@@ -62,6 +86,8 @@ Corrective Plan: N/A
 - **Parameter key strategy (FIXED)**: `getActionRequiredParameters()` keys MUST be fixed English strings (e.g., `'Monday'`), never wrapped in `t()`. `DateTime::format('l')` always returns English day names. Using `t()` on keys stores translated names in `action_has_params` that can never be matched by the English lookup — permanent failure in non-English installs.
 - **PSR-12 braces**: PHP classes and methods require opening brace on its own line (Allman style). Use `cytopia/phpcs:latest` Docker image to verify PSR-12 compliance when vendor/ is not yet bootstrapped.
 - **docker-*.sh skip pattern**: Scripts in `scripts/` exit 0 with a SKIP message when vendor/ is missing. This allows pre-commit hooks to pass during early development before US-010 bootstraps composer/vendor.
+- **PHP image split**: The `kanboard/kanboard` Docker image lacks the `tokenizer` extension (needed by PHPUnit 11 and PHPStan). Use `php:8.4-cli` (entrypoint `/bin/sh`) for test/phpstan/phpcs runners; use `kanboard/kanboard` (entrypoint `/bin/sh`) only for PHP lint (`php -l`) where tokenizer is not required.
+- **Kanboard-agnostic test bootstrap**: PHPUnit tests use a `TestableAssignColorsByDayOfWeek` subclass that bypasses `Pimple\Container` entirely. Override `__construct(array $services)` (no parent call) and `__get(string $name)` to resolve DI services from a plain array. PHP guarantees class property defaults (e.g. `private $params = []`) are initialised before any constructor runs, so `setParam`/`getParam` work correctly on the subclass instance.
 - **hasRequiredCondition() is the full guard**: All failure paths MUST be checked in `hasRequiredCondition()` — `doAction()` should be fully unconditional. This is the Kanboard action lifecycle contract enforced by ActionManager.
 - **Day-of-week resolution**: Use `(new DateTime('now', new DateTimeZone($tz)))->setTimestamp($ts)->format('l')` to get the English day name from a Unix timestamp. Both `hasRequiredCondition()` and `getColorForDay()` use this pattern; US-005 will extract it into a shared private helper.
 ---
