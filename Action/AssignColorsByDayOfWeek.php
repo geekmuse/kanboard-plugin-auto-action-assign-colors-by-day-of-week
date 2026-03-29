@@ -81,7 +81,10 @@ class AssignColorsByDayOfWeek extends Base
      */
     public function getDescription()
     {
-        return t('Assign automatically a color based on the day of the week');
+        // Explicitly names 'due date' to distinguish from creation-date colouring.
+        // Users often expect 'day of week' to mean today; this clarifies that the
+        // colour is driven by the day of the week of the task's due date (GAP-12).
+        return t('Assign a color based on the day of the week of the task\'s due date');
     }
 
     /**
