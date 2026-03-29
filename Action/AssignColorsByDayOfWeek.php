@@ -5,9 +5,14 @@ namespace Kanboard\Plugin\AssignColorsByDayOfWeek\Action;
 use DateTime;
 use DateTimeZone;
 use Kanboard\Model\TaskModel;
-use Kanboard\Model\ColorModel;
 use Kanboard\Action\Base;
 
+/**
+ * Automatically assigns a card color based on the day of the week of the
+ * task's due date, triggered on task creation.
+ *
+ * @property \Kanboard\Model\ColorModel $colorModel
+ */
 class AssignColorsByDayOfWeek extends Base
 {
     /**
@@ -105,7 +110,7 @@ class AssignColorsByDayOfWeek extends Base
     public function hasRequiredCondition(array $data)
     {
         if (
-            $data['task']['color_id'] == $this->colorModel->getDefaultColor()
+            $data['task']['color_id'] === $this->colorModel->getDefaultColor()
             && isset($data['task']['date_due'])
             && $data['task']['date_due'] != 0
             && $data['task']['date_due'] != ''
