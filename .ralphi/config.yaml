@@ -1,0 +1,42 @@
+# ralphi configuration
+# Auto-generated — edit as needed
+
+project:
+  name: "plugin-auto-action-assign-colors-by-day-of-week"
+  description: "A Kanboard plugin that automatically assigns task card colors based on the day of the week of the task's due date, triggered at task creation."
+  language: "PHP"
+  framework: "Kanboard Plugin"
+
+commands:
+  lint:    "bash scripts/docker-lint.sh"
+  test:    "bash scripts/docker-test.sh"
+  phpcs:   "bash scripts/docker-phpcs.sh"
+  phpstan: "bash scripts/docker-phpstan.sh"
+  # build: n/a — PHP plugin loaded directly by Kanboard
+  # typecheck: n/a — covered by phpstan
+
+rules:
+  # ── Docker ────────────────────────────────────────────────────────────────
+  - "WHEN running any command in the kanboard/kanboard Docker image you MUST override the entrypoint — the default entrypoint starts Apache and runs forever. Always use: docker run --rm --entrypoint /bin/sh kanboard/kanboard -c \"<cmd>\""
+
+  # ── Kanboard plugin API ───────────────────────────────────────────────────
+  - "use $this->getParam('Monday') (and other day names) to read action parameters — NEVER query action_has_params directly; ActionManager already populates $this->params for each action instance before execute() is called"
+  - "use $this->getProjectId() to retrieve the action's configured project — do not pass project_id through helper methods"
+  - "all database queries must use PicoDb query builder or PDO prepared statements — no raw SQL string interpolation"
+  - "all user-visible strings wrapped in t('...') for localization"
+  - "follow PSR-12 coding standard — 4-space indentation for PHP, no mixed tabs and spaces"
+
+  # ── Action lifecycle ──────────────────────────────────────────────────────
+  - "hasRequiredCondition() must guard ALL failure paths before doAction() is called — doAction() should be unconditional given a passing condition"
+  - "parameter keys in getActionRequiredParameters() and parameter lookups in doAction()/helpers must use the same key strategy (either fixed English strings OR t() applied consistently to both sides)"
+
+  # ── Known gaps (see docs/tasks/001-gap-analysis.md) ──────────────────────
+  - "BEFORE ANY CODING WORK each iteration: read docs/tasks/001-gap-analysis.md — it contains the prioritized gap list and maps each gap to concrete tasks"
+
+boundaries:
+  never_touch:
+    - "*.lock"
+    - ".env*"
+
+engine: "pi"
+max_retries: 3
