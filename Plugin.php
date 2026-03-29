@@ -73,7 +73,7 @@ class Plugin extends Base
      */
     public function getPluginHomepage()
     {
-        return 'https://bradleyscampbell.net';
+        return 'https://github.com/geekmuse/kanboard-plugin-auto-action-assign-colors-by-day-of-week';
     }
 
     /**
