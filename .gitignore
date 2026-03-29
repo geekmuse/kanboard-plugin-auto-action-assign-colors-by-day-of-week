@@ -1,0 +1,15 @@
+# Composer dependencies — install with: docker run --rm -v "$PWD:/app" composer:2 install
+/vendor/
+
+# Composer lock file — intentionally not committed for a library/plugin
+# (consumers pin their own dependency versions)
+/composer.lock
+
+# PHPStan result cache
+/.phpstan.result.cache
+/.phpstan-cache/
+
+# PHPUnit result cache and coverage reports
+/.phpunit.result.cache
+/.phpunit.cache/
+/coverage/

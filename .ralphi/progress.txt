@@ -15,6 +15,45 @@ Corrective Plan: N/A
   - US-007 (PHPDoc) is now unblocked; the `@property` annotation for `$colorModel` is already in place so US-007 only needs to add method-level PHPDoc
 ---
 
+## 2026-03-29 10:15 - US-008
+Session: iter-5887eed9
+Review Outcome: PASS
+Trajectory: ON_TRACK
+Trajectory Notes: N/A
+Corrective Plan: N/A
+- Updated `getDescription()` return value to explicitly name "the task's due date" — closes GAP-12
+- Added inline comment explaining the due-date semantics rationale (not creation date)
+- Updated `README.md` Features list: action name, Mon–Sun + timezone support, explicit callout that color is driven by the **due date's** day of week
+- Updated `README.md` Usage section: step 2 (new action name), step 3 (Mon–Sun + No change), step 4 (Timezone), step 5 (Save), plus a prominent callout box distinguishing due-date from creation-date colouring
+- Rewrote `docs/001-architecture.md` Data Flow (7 steps) to reflect getParam() API, configurable timezone, and English-key lookup — removed all references to raw SQL and hardcoded `America/New_York`
+- Updated Key Design Decisions table: replaced two stale rows (raw SQL, hardcoded TZ) with four accurate rows (getParam API, fixed English keys, configurable TZ, due-date semantics)
+- Removed `PDO` from runtime dependencies (no longer used directly)
+- Updated Future Considerations to remove already-done items; added two new forward-looking ideas
+- Bumped `docs/001-architecture.md` status from `draft` → `active`
+- Updated CHANGELOG.md under [Unreleased] with US-008 entry
+- Files changed: `Action/AssignColorsByDayOfWeek.php`, `README.md`, `docs/001-architecture.md`, `CHANGELOG.md`
+- **Learnings for future iterations:**
+  - Documentation clarity matters: the word "day of week" without "due date" is genuinely ambiguous — creation-date semantics are a reasonable user expectation for an action that fires on creation
+  - `docs/001-architecture.md` was still referencing the old SQL-based design; architecture docs should be updated in the same PR as the code change (not deferred) to prevent stale docs accumulating
+  - `status: draft` → `status: active` transition: architecture doc was still marked draft; promotion to active is appropriate once the core implementation is stable
+---
+
+## 2026-03-29 14:55 - US-009
+Session: iter-7f29bcb3
+Review Outcome: PASS
+Trajectory: ON_TRACK
+Trajectory Notes: N/A
+Corrective Plan: N/A
+- Created `LICENSE` file at repo root with standard MIT text, year 2026, author "Brad Campbell" (closes GAP-15)
+- Updated `getPluginHomepage()` in `Plugin.php` to return the Gitea repository HTTPS URL instead of the author's personal site (closes GAP-16)
+- Updated `CHANGELOG.md` under [Unreleased]: `### Added` entry for LICENSE, `### Changed` entry for homepage fix
+- Files changed: `LICENSE` (new), `Plugin.php`, `CHANGELOG.md`
+- **Learnings for future iterations:**
+  - The HTTPS repo URL is `https://github.com/geekmuse/kanboard-plugin-auto-action-assign-colors-by-day-of-week` — already used in CHANGELOG diff links, so the pattern was already established
+  - When adding both an `### Added` section and a `### Changed` section to an existing `### Changed` block in CHANGELOG, place the new sections before the existing `### Changed` header and merge carefully to avoid duplicate section headers
+  - US-010 (composer.json + PHPUnit tests) is the next open story and is now unblocked
+---
+
 ## Codebase Patterns
 - **Timezone resolution helper**: Extract `DateTime` construction + `format('l')` into a shared `resolveDayOfWeek($ts)` private method whenever both `hasRequiredCondition()` and `getColorForDay()` need the day name. This avoids timezone drift and keeps the configurable timezone read in one place.
 - **Timezone parameter list**: `DateTimeZone::listIdentifiers(DateTimeZone::ALL)` + `array_combine($ids, $ids)` provides the full IANA identifier list as a select dropdown. Prepend `'' => t('Server default')` as a sentinel; `resolveDayOfWeek()` falls back to `date_default_timezone_get()` when the param is empty.
@@ -125,4 +164,24 @@ Corrective Plan: N/A
   - Shared `resolveDayOfWeek()` helper eliminates timezone duplication between `hasRequiredCondition()` and `getColorForDay()` — future changes only need to touch one place
   - `DateTimeZone::listIdentifiers(DateTimeZone::ALL)` + `array_combine($ids, $ids)` is the pattern for a full IANA-validated timezone select list in Kanboard action parameters
   - US-010 tests should cover: fallback to server default when Timezone param is empty; correct day resolution for a UTC timestamp near midnight in a timezone that spans the date boundary
+---
+
+## 2026-03-29 09:55 - US-007
+Session: iter-27c239df
+Review Outcome: PASS
+Trajectory: ON_TRACK
+Trajectory Notes: N/A
+Corrective Plan: N/A
+- Added class-level PHPDoc to `Plugin.php`: `@package Kanboard\Plugin\AssignColorsByDayOfWeek`, `@author Bradley Campbell <...>`, and a one-line class description
+- Added method-level PHPDoc to all 7 methods in `Plugin.php`: `initialize()`, `getPluginName()`, `getPluginDescription()`, `getPluginAuthor()`, `getPluginVersion()`, `getPluginHomepage()`, `getCompatibleVersion()` — each with a description and `@return string` (or `@return void` for initialize)
+- Extended existing class-level PHPDoc in `Action/AssignColorsByDayOfWeek.php` with `@package Kanboard\Plugin\AssignColorsByDayOfWeek\Action` and `@author` tags (`@property \Kanboard\Model\ColorModel $colorModel` already in place from US-006)
+- Added `@param int $ts` and `@return string` to `resolveDayOfWeek()` (existing block comment upgraded to full PHPDoc)
+- Added full PHPDoc to `getColorForDay()` (`@param int`, `@return string|null`), `getTimezoneOptions()` (`@return array<string, string>`), `getDescription()`, `getCompatibleEvents()`, `getActionRequiredParameters()` (`@return array<string, array<string, string>>`), `getEventRequiredParameters()` (`@return array<int|string, mixed>`), `doAction()` (`@param array<string, mixed>`, `@return bool`), `hasRequiredCondition()` (`@param array<string, mixed>`, `@return bool`)
+- CHANGELOG.md updated under [Unreleased] with US-007 entry
+- Files changed: `Action/AssignColorsByDayOfWeek.php`, `Plugin.php`, `CHANGELOG.md`
+- **Learnings for future iterations:**
+  - PHPDoc `@return string|null` is the correct annotation for `getParam()` callers since `getParam()` returns null when a key is absent
+  - `@return array<string, array<string, string>>` is the correct generic annotation for `getActionRequiredParameters()` — PHPStan level-5 will verify this once US-010 bootstraps vendor/
+  - PSR-12 phpcs is happy with PHPDoc alignment (e.g. `@param  int`, `@return string`) using 2-space padding after the tag
+  - US-008 (clarify date_due semantics) and US-009 (LICENSE + homepage) are both now unblocked
 ---
