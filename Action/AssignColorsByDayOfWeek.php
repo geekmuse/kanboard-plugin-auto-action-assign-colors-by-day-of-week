@@ -11,6 +11,8 @@ use Kanboard\Action\Base;
  * Automatically assigns a card color based on the day of the week of the
  * task's due date, triggered on task creation.
  *
+ * @package  Kanboard\Plugin\AssignColorsByDayOfWeek\Action
+ * @author   Bradley Campbell <oss-projects+kanboard@bradleyscampbell.net>
  * @property \Kanboard\Model\ColorModel $colorModel
  */
 class AssignColorsByDayOfWeek extends Base
@@ -21,6 +23,10 @@ class AssignColorsByDayOfWeek extends Base
      *
      * Extracted as a shared helper so both hasRequiredCondition() and
      * getColorForDay() use the same timezone without duplication.
+     *
+     * @param  int $ts Unix timestamp (e.g. task date_due value)
+     * @return string  English day name as returned by DateTime::format('l'),
+     *                 e.g. 'Monday', 'Saturday'
      */
     private function resolveDayOfWeek($ts)
     {
@@ -36,11 +42,29 @@ class AssignColorsByDayOfWeek extends Base
         return $dt->format('l');
     }
 
+    /**
+     * Return the configured color ID for the day of the week of the given timestamp.
+     *
+     * @param  int         $ts Unix timestamp (task date_due)
+     * @return string|null Color identifier string, or null/'' when no color is
+     *                     configured for that day (including the 'No change' sentinel)
+     */
     private function getColorForDay($ts)
     {
         return $this->getParam($this->resolveDayOfWeek($ts));
     }
 
+    /**
+     * Build an associative array of all IANA timezone identifiers for use as
+     * a select-list in the Timezone action parameter.
+     *
+     * Prepends an empty-string sentinel mapped to 'Server default'; when the
+     * user selects this option, resolveDayOfWeek() falls back to
+     * date_default_timezone_get().
+     *
+     * @return array<string, string> Map of IANA identifier => IANA identifier,
+     *                              with '' => t('Server default') prepended
+     */
     private function getTimezoneOptions()
     {
         $identifiers = DateTimeZone::listIdentifiers(DateTimeZone::ALL);
@@ -50,16 +74,37 @@ class AssignColorsByDayOfWeek extends Base
         return array('' => t('Server default')) + array_combine($identifiers, $identifiers);
     }
 
+    /**
+     * Return the human-readable description shown in the action configuration UI.
+     *
+     * @return string
+     */
     public function getDescription()
     {
         return t('Assign automatically a color based on the day of the week');
     }
 
+    /**
+     * Return the list of Kanboard events this action listens to.
+     *
+     * @return string[] Array of event name constants
+     */
     public function getCompatibleEvents()
     {
         return array(TaskModel::EVENT_CREATE);
     }
 
+    /**
+     * Return the action parameters that must be configured by the user.
+     *
+     * Each key is a fixed English day name (Monday–Sunday) or 'Timezone'.
+     * Fixed English keys are used intentionally (no t() wrapper) because
+     * DateTime::format('l') always returns English names; translating the keys
+     * would cause a permanent lookup mismatch in non-English installations.
+     *
+     * @return array<string, array<string, string>> Map of parameter name =>
+     *         associative options array (value => label)
+     */
     public function getActionRequiredParameters()
     {
         // Prepend a sentinel "No change" option (empty-string key) so users can
@@ -87,6 +132,11 @@ class AssignColorsByDayOfWeek extends Base
         );
     }
 
+    /**
+     * Return the event payload fields that must be present for this action to run.
+     *
+     * @return array<int|string, mixed> Flat and/or nested list of required field names
+     */
     public function getEventRequiredParameters()
     {
         return array(
@@ -99,6 +149,15 @@ class AssignColorsByDayOfWeek extends Base
         );
     }
 
+    /**
+     * Update the task's color_id to the value configured for its due-date day.
+     *
+     * Called only when hasRequiredCondition() returns true, so the color lookup
+     * is guaranteed to return a non-empty string.
+     *
+     * @param  array<string, mixed> $data Event payload containing task_id and task fields
+     * @return bool                       True on success, false on failure
+     */
     public function doAction(array $data)
     {
         return $this->taskModificationModel->update(array(
@@ -107,6 +166,20 @@ class AssignColorsByDayOfWeek extends Base
         ));
     }
 
+    /**
+     * Determine whether all conditions are met before doAction() may run.
+     *
+     * Returns true only when:
+     * - The task currently has the default color (not already customised)
+     * - The task has a non-zero due date
+     * - A non-empty color is configured for the day of the week of that due date
+     *
+     * Saturday and Sunday with no configured color (or with the 'No change'
+     * sentinel) return false, preventing doAction() from writing a null color_id.
+     *
+     * @param  array<string, mixed> $data Event payload containing task and task_id fields
+     * @return bool                       True when doAction() may proceed safely
+     */
     public function hasRequiredCondition(array $data)
     {
         if (
