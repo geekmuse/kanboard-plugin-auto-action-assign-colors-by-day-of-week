@@ -20,8 +20,8 @@
       "dependsOn": [],
       "notes": "GAP-01 (SQL injection), GAP-04 (bypasses getParam API). Confirmed via Kanboard source: ActionManager::attachEvents() calls setParam($name, $value) for every action_has_params row for the specific action_id before registering the listener.",
       "startedAt": "2026-03-29T05:50:30.768Z",
-      "updatedAt": "2026-03-29T07:35:00.000Z",
-      "completedAt": "2026-03-29T07:35:00.000Z"
+      "updatedAt": "2026-03-29T05:57:06.902Z",
+      "completedAt": "2026-03-29T05:57:06.902Z"
     },
     {
       "id": "US-002",
@@ -35,11 +35,14 @@
         "`ralphi check` passes"
       ],
       "priority": 2,
-      "status": "open",
+      "status": "done",
       "dependsOn": [
         "US-001"
       ],
-      "notes": "GAP-03 (i18n failure). DateTime::format('l') always returns English day names regardless of PHP locale. Storing translated names as param keys creates an unresolvable mismatch. Fixed English keys on both sides is the simplest correct approach."
+      "notes": "GAP-03 (i18n failure). DateTime::format('l') always returns English day names regardless of PHP locale. Storing translated names as param keys creates an unresolvable mismatch. Fixed English keys on both sides is the simplest correct approach.",
+      "startedAt": "2026-03-29T05:57:06.981Z",
+      "updatedAt": "2026-03-29T07:57:00.000Z",
+      "completedAt": "2026-03-29T07:57:00.000Z"
     },
     {
       "id": "US-003",
