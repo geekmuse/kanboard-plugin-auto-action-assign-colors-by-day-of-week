@@ -10,15 +10,39 @@ use Kanboard\Action\Base;
 
 class AssignColorsByDayOfWeek extends Base
 {
+    /**
+     * Resolve the English day-of-week name from a Unix timestamp, using the
+     * configured Timezone parameter (falls back to the server default).
+     *
+     * Extracted as a shared helper so both hasRequiredCondition() and
+     * getColorForDay() use the same timezone without duplication.
+     */
+    private function resolveDayOfWeek($ts)
+    {
+        $tz = $this->getParam('Timezone');
+        if (empty($tz)) {
+            $tz = date_default_timezone_get();
+        }
+        $dt = new DateTime('now', new DateTimeZone($tz));
+        $dt->setTimestamp((int) $ts);
+        // DateTime::format('l') always returns English day names regardless of
+        // PHP locale — parameter keys are fixed English strings (see
+        // getActionRequiredParameters()), so the lookup is always consistent.
+        return $dt->format('l');
+    }
+
     private function getColorForDay($ts)
     {
-        $dt = new DateTime('now', new DateTimeZone('America/New_York'));
-        $dt->setTimestamp($ts);
-        // DateTime::format('l') always returns English day names regardless of PHP
-        // locale. Parameter keys are fixed English strings (see
-        // getActionRequiredParameters()), so no t() wrapper is used here.
-        $dayOfWeek = $dt->format('l');
-        return $this->getParam($dayOfWeek);
+        return $this->getParam($this->resolveDayOfWeek($ts));
+    }
+
+    private function getTimezoneOptions()
+    {
+        $identifiers = DateTimeZone::listIdentifiers(DateTimeZone::ALL);
+        // Prepend an empty-string sentinel meaning "use the PHP/server default".
+        // resolveDayOfWeek() checks empty($tz) and falls back to
+        // date_default_timezone_get() when the sentinel is selected.
+        return array('' => t('Server default')) + array_combine($identifiers, $identifiers);
     }
 
     public function getDescription()
@@ -52,6 +76,9 @@ class AssignColorsByDayOfWeek extends Base
             'Friday'    => $colors,
             'Saturday'  => $colors,
             'Sunday'    => $colors,
+            // IANA timezone identifier for day-of-week resolution.
+            // Empty string ("Server default") means: use date_default_timezone_get().
+            'Timezone'  => $this->getTimezoneOptions(),
         );
     }
 
@@ -88,9 +115,7 @@ class AssignColorsByDayOfWeek extends Base
             // (e.g. Saturday, Sunday) cause getParam() to return null, so this
             // returns false and prevents doAction() from writing a null color_id
             // to the database (closes GAP-02, GAP-05).
-            $dt = new DateTime('now', new DateTimeZone('America/New_York'));
-            $dt->setTimestamp((int) $data['task']['date_due']);
-            $day = $dt->format('l');
+            $day = $this->resolveDayOfWeek($data['task']['date_due']);
             $color = $this->getParam($day);
             return $color !== null && $color !== '';
         }
