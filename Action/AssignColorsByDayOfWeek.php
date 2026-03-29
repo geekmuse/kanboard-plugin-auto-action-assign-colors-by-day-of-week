@@ -14,8 +14,11 @@ class AssignColorsByDayOfWeek extends Base
     {
         $dt = new DateTime('now', new DateTimeZone('America/New_York'));
         $dt->setTimestamp($ts);
+        // DateTime::format('l') always returns English day names regardless of PHP
+        // locale. Parameter keys are fixed English strings (see
+        // getActionRequiredParameters()), so no t() wrapper is used here.
         $dayOfWeek = $dt->format('l');
-        return $this->getParam(t($dayOfWeek));
+        return $this->getParam($dayOfWeek);
     }
 
     public function getDescription()
@@ -31,12 +34,18 @@ class AssignColorsByDayOfWeek extends Base
     public function getActionRequiredParameters()
     {
         $colors = $this->colorModel->getList();
+        // Keys are fixed English strings, intentionally without t().
+        // Using t() would store translated day names (e.g. 'Lundi' in French) in
+        // action_has_params, but DateTime::format('l') always produces English names,
+        // causing a permanent lookup mismatch in non-English installations (GAP-03).
+        // BREAKING CHANGE for existing non-English configurations: re-save actions
+        // after upgrading from 0.1.0.
         return array(
-            t('Monday') => $colors,
-            t('Tuesday') => $colors,
-            t('Wednesday') => $colors,
-            t('Thursday') => $colors,
-            t('Friday') => $colors,
+            'Monday'    => $colors,
+            'Tuesday'   => $colors,
+            'Wednesday' => $colors,
+            'Thursday'  => $colors,
+            'Friday'    => $colors,
         );
     }
 
