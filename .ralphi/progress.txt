@@ -1,8 +1,30 @@
+## 2026-03-29 09:45 - US-006
+Session: iter-2df74c2b
+Review Outcome: PASS
+Trajectory: ON_TRACK
+Trajectory Notes: N/A
+Corrective Plan: N/A
+- Removed phantom `use Kanboard\Model\ColorModel` import — `$colorModel` is resolved via DI container `__get`, not this `use` statement; added `@property \Kanboard\Model\ColorModel $colorModel` to class PHPDoc instead (GAP-10)
+- Added class-level PHPDoc block to `AssignColorsByDayOfWeek` describing its purpose
+- Changed loose `==` to strict `===` in `hasRequiredCondition()` `color_id` comparison (GAP-11)
+- Confirmed all PHP files are tab-free and PSR-12-compliant: cytopia/phpcs direct run returns 0 violations (GAP-08)
+- Files changed: `Action/AssignColorsByDayOfWeek.php`, `CHANGELOG.md`
+- **Learnings for future iterations:**
+  - Phantom `use` statements for DI-injected services are common in Kanboard plugins — the correct fix is a `@property` PHPDoc annotation, not a `use` import; this gives PHPStan visibility without a real import
+  - `cytopia/phpcs:latest` must be invoked with `--entrypoint /usr/bin/phpcs` (not the default entrypoint); the default entrypoint is `phpcs` which resolves differently inside the container
+  - US-007 (PHPDoc) is now unblocked; the `@property` annotation for `$colorModel` is already in place so US-007 only needs to add method-level PHPDoc
+---
+
 ## Codebase Patterns
+- **Timezone resolution helper**: Extract `DateTime` construction + `format('l')` into a shared `resolveDayOfWeek($ts)` private method whenever both `hasRequiredCondition()` and `getColorForDay()` need the day name. This avoids timezone drift and keeps the configurable timezone read in one place.
+- **Timezone parameter list**: `DateTimeZone::listIdentifiers(DateTimeZone::ALL)` + `array_combine($ids, $ids)` provides the full IANA identifier list as a select dropdown. Prepend `'' => t('Server default')` as a sentinel; `resolveDayOfWeek()` falls back to `date_default_timezone_get()` when the param is empty.
+- **Sentinel "No change" in color lists**: `array('' => t('No change')) + $this->colorModel->getList()` prepends an empty-string sentinel to every day's color dropdown. The existing `$color !== '' ` guard in `hasRequiredCondition()` already treats this as "skip" — no extra guard logic needed.
 - **getParam API**: `$this->getParam($key)` returns the configured value for an action parameter — ActionManager pre-populates `$this->params` from `action_has_params` before `execute()` is called. Never query the DB to fetch action params.
 - **Parameter key strategy (FIXED)**: `getActionRequiredParameters()` keys MUST be fixed English strings (e.g., `'Monday'`), never wrapped in `t()`. `DateTime::format('l')` always returns English day names. Using `t()` on keys stores translated names in `action_has_params` that can never be matched by the English lookup — permanent failure in non-English installs.
 - **PSR-12 braces**: PHP classes and methods require opening brace on its own line (Allman style). Use `cytopia/phpcs:latest` Docker image to verify PSR-12 compliance when vendor/ is not yet bootstrapped.
 - **docker-*.sh skip pattern**: Scripts in `scripts/` exit 0 with a SKIP message when vendor/ is missing. This allows pre-commit hooks to pass during early development before US-010 bootstraps composer/vendor.
+- **hasRequiredCondition() is the full guard**: All failure paths MUST be checked in `hasRequiredCondition()` — `doAction()` should be fully unconditional. This is the Kanboard action lifecycle contract enforced by ActionManager.
+- **Day-of-week resolution**: Use `(new DateTime('now', new DateTimeZone($tz)))->setTimestamp($ts)->format('l')` to get the English day name from a Unix timestamp. Both `hasRequiredCondition()` and `getColorForDay()` use this pattern; US-005 will extract it into a shared private helper.
 ---
 
 ## PRD Run Context
@@ -46,4 +68,61 @@ Corrective Plan: N/A
   - `DateTime::format('l')` always produces English day names regardless of PHP locale — this is a PHP guarantee, not a quirk. Parameter keys that feed `getParam()` MUST match this output exactly.
   - The `t()` anti-pattern on parameter keys is subtle: it appears to work in English (t('Monday') === 'Monday') but silently breaks in any other locale because the stored DB key diverges from the runtime lookup key.
   - US-003 next: add day-of-week guard in `hasRequiredCondition()` using the now-correct fixed English keys; `doAction()` becomes unconditional
+---
+
+## 2026-03-29 08:20 - US-003
+Session: iter-8a2c6427
+Review Outcome: PASS
+Trajectory: ON_TRACK
+Trajectory Notes: N/A
+Corrective Plan: N/A
+- Added day-of-week guard to `hasRequiredCondition()`: resolves day name from `date_due` timestamp via `DateTime::format('l')`, then checks `$this->getParam($day) !== null && !== ''`
+- Converted the `return (... and ...)` expression to an `if` block for readability and to allow the guard logic to follow
+- Saturday/Sunday due dates → `getParam('Saturday'/'Sunday')` returns null (no parameter configured) → condition returns `false` → `doAction()` never called → task color unchanged
+- Weekday with configured color → condition returns `true` → `doAction()` runs unconditionally
+- `doAction()` was already unconditional from prior iterations — no changes needed there
+- Updated CHANGELOG.md under [Unreleased] with US-003 fix entry
+- Files changed: `Action/AssignColorsByDayOfWeek.php`, `CHANGELOG.md`
+- **Learnings for future iterations:**
+  - `hasRequiredCondition()` is the right place for ALL guards — `doAction()` should be a clean unconditional call; this is the Kanboard action lifecycle contract
+  - Timezone duplication: `hasRequiredCondition()` and `getColorForDay()` now both construct `DateTime('now', new DateTimeZone('America/New_York'))` — US-005 should extract this into a shared private helper to avoid drift when the timezone becomes configurable
+  - US-004 (Sat/Sun params) and US-005 (timezone param) can now unblock: both depend only on US-003 being done
+---
+
+## 2026-03-29 08:45 - US-004
+Session: iter-643908b8
+Review Outcome: PASS
+Trajectory: ON_TRACK
+Trajectory Notes: N/A
+Corrective Plan: N/A
+- Added `'Saturday'` and `'Sunday'` entries to `getActionRequiredParameters()` — all 7 days now supported
+- Prepended `'' => t('No change')` sentinel to the color list for every day so users can explicitly leave a day's task color unchanged
+- `hasRequiredCondition()` unchanged — the existing `$color !== null && $color !== ''` guard already treats the empty-string sentinel as "skip"
+- `doAction()` unchanged — remains unconditional
+- CHANGELOG.md updated under [Unreleased] with US-004 entry
+- Files changed: `Action/AssignColorsByDayOfWeek.php`, `CHANGELOG.md`
+- **Learnings for future iterations:**
+  - Prepending a sentinel to `colorModel->getList()` with `array('' => t('No change')) + $list` is the clean pattern for optional-select parameters in Kanboard actions
+  - The empty-string sentinel is already the "no param configured" fallback value — using it as the explicit sentinel means zero additional guard logic
+  - US-005 (timezone param) can now proceed — it also only depends on US-003
+---
+
+## 2026-03-29 09:15 - US-005
+Session: iter-7766e09a
+Review Outcome: PASS
+Trajectory: ON_TRACK
+Trajectory Notes: N/A
+Corrective Plan: N/A
+- Added `resolveDayOfWeek($ts)` private helper: reads `$this->getParam('Timezone')`, falls back to `date_default_timezone_get()` when empty, constructs `DateTime` with that timezone and returns `$dt->format('l')`
+- Added `getTimezoneOptions()` private helper: returns full IANA identifier list via `DateTimeZone::listIdentifiers(DateTimeZone::ALL)` + `array_combine()`, prepended with `'' => t('Server default')` sentinel
+- Added `'Timezone' => $this->getTimezoneOptions()` to `getActionRequiredParameters()`
+- Updated `getColorForDay()` to delegate to `resolveDayOfWeek()` instead of inline `DateTime` construction
+- Updated `hasRequiredCondition()` to call `resolveDayOfWeek()` instead of the hardcoded `America/New_York` block
+- No hardcoded `'America/New_York'` remains anywhere in the action class
+- CHANGELOG.md updated under [Unreleased] with US-005 entry
+- Files changed: `Action/AssignColorsByDayOfWeek.php`, `CHANGELOG.md`
+- **Learnings for future iterations:**
+  - Shared `resolveDayOfWeek()` helper eliminates timezone duplication between `hasRequiredCondition()` and `getColorForDay()` — future changes only need to touch one place
+  - `DateTimeZone::listIdentifiers(DateTimeZone::ALL)` + `array_combine($ids, $ids)` is the pattern for a full IANA-validated timezone select list in Kanboard action parameters
+  - US-010 tests should cover: fallback to server default when Timezone param is empty; correct day resolution for a UTC timestamp near midnight in a timezone that spans the date boundary
 ---
