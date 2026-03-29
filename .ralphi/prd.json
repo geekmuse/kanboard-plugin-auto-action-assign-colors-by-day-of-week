@@ -41,8 +41,8 @@
       ],
       "notes": "GAP-03 (i18n failure). DateTime::format('l') always returns English day names regardless of PHP locale. Storing translated names as param keys creates an unresolvable mismatch. Fixed English keys on both sides is the simplest correct approach.",
       "startedAt": "2026-03-29T05:57:06.981Z",
-      "updatedAt": "2026-03-29T07:57:00.000Z",
-      "completedAt": "2026-03-29T07:57:00.000Z"
+      "updatedAt": "2026-03-29T05:59:01.565Z",
+      "completedAt": "2026-03-29T05:59:01.565Z"
     },
     {
       "id": "US-003",
@@ -57,12 +57,15 @@
         "`ralphi check` passes"
       ],
       "priority": 3,
-      "status": "open",
+      "status": "done",
       "dependsOn": [
         "US-001",
         "US-002"
       ],
-      "notes": "GAP-02 (weekend crash), GAP-05 (no day guard). Closes the null color_id corruption path. doAction() should be a clean unconditional call per Kanboard action lifecycle conventions."
+      "notes": "GAP-02 (weekend crash), GAP-05 (no day guard). Closes the null color_id corruption path. doAction() should be a clean unconditional call per Kanboard action lifecycle conventions.",
+      "startedAt": "2026-03-29T05:59:01.658Z",
+      "updatedAt": "2026-03-29T06:01:46.004Z",
+      "completedAt": "2026-03-29T06:01:46.004Z"
     },
     {
       "id": "US-004",
@@ -78,11 +81,14 @@
         "`ralphi check` passes"
       ],
       "priority": 4,
-      "status": "open",
+      "status": "done",
       "dependsOn": [
         "US-003"
       ],
-      "notes": "GAP-07 (no Sat/Sun support). Closes the weekend feature gap opened up once GAP-02/05 are fixed."
+      "notes": "GAP-07 (no Sat/Sun support). Closes the weekend feature gap opened up once GAP-02/05 are fixed.",
+      "startedAt": "2026-03-29T06:01:46.073Z",
+      "updatedAt": "2026-03-29T06:04:05.781Z",
+      "completedAt": "2026-03-29T06:04:05.781Z"
     },
     {
       "id": "US-005",
@@ -97,11 +103,14 @@
         "`ralphi check` passes"
       ],
       "priority": 5,
-      "status": "open",
+      "status": "done",
       "dependsOn": [
         "US-003"
       ],
-      "notes": "GAP-06 (hardcoded timezone). Independent of US-004; both depend on US-003 only."
+      "notes": "GAP-06 (hardcoded timezone). Independent of US-004; both depend on US-003 only.",
+      "startedAt": "2026-03-29T06:04:05.845Z",
+      "updatedAt": "2026-03-29T06:06:58.566Z",
+      "completedAt": "2026-03-29T06:06:58.566Z"
     },
     {
       "id": "US-006",
@@ -115,11 +124,14 @@
         "`ralphi check` passes (phpcs reports zero PSR-12 violations)"
       ],
       "priority": 6,
-      "status": "open",
+      "status": "done",
       "dependsOn": [
         "US-003"
       ],
-      "notes": "GAP-08 (mixed indentation), GAP-10 (phantom import), GAP-11 (loose ==). Sequenced after US-003 so the style pass runs on stabilised code."
+      "notes": "GAP-08 (mixed indentation), GAP-10 (phantom import), GAP-11 (loose ==). Sequenced after US-003 so the style pass runs on stabilised code.",
+      "startedAt": "2026-03-29T06:06:58.648Z",
+      "updatedAt": "2026-03-29T09:45:00.000Z",
+      "completedAt": "2026-03-29T09:45:00.000Z"
     },
     {
       "id": "US-007",
