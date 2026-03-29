@@ -33,7 +33,11 @@ class AssignColorsByDayOfWeek extends Base
 
     public function getActionRequiredParameters()
     {
-        $colors = $this->colorModel->getList();
+        // Prepend a sentinel "No change" option (empty-string key) so users can
+        // explicitly leave a day's task color unchanged.  hasRequiredCondition()
+        // already treats '' as "skip" — the same path taken when a parameter is
+        // absent — so no additional guard logic is required.
+        $colors = array('' => t('No change')) + $this->colorModel->getList();
         // Keys are fixed English strings, intentionally without t().
         // Using t() would store translated day names (e.g. 'Lundi' in French) in
         // action_has_params, but DateTime::format('l') always produces English names,
@@ -46,6 +50,8 @@ class AssignColorsByDayOfWeek extends Base
             'Wednesday' => $colors,
             'Thursday'  => $colors,
             'Friday'    => $colors,
+            'Saturday'  => $colors,
+            'Sunday'    => $colors,
         );
     }
 
