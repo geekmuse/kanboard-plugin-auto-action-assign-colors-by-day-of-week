@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **[US-010]** Add `composer.json` with `phpunit/phpunit ^11.0` and `phpstan/phpstan ^1.10` as dev dependencies, PSR-4 autoloading for the plugin namespace and test namespace, and a `test` Composer script (closes GAP-13 infrastructure)
+- **[US-010]** Add `phpunit.xml.dist` PHPUnit configuration with bootstrap, testdox output, and source coverage configuration
+- **[US-010]** Add `phpstan.neon` configuration pointing at `Plugin.php` and `Action/` at level 5; uses `tests/bootstrap.php` as bootstrapFiles to load Kanboard class stubs (or Kanboard's real autoloader when running in the Docker image)
+- **[US-010]** Add `tests/bootstrap.php` — defines `t()` stub and conditionally loads Kanboard's vendor autoloader (when inside the `kanboard/kanboard` Docker image) or the minimal `tests/Stubs/KanboardStubs.php` fallback
+- **[US-010]** Add `tests/Stubs/KanboardStubs.php` — minimal stub definitions for `Kanboard\Core\Base`, `Kanboard\Action\Base`, `Kanboard\Core\Plugin\Base`, `Kanboard\Core\Action\ActionManager`, `Kanboard\Model\TaskModel`, `Kanboard\Model\ColorModel`, and `Kanboard\Model\TaskModificationModel` for local development outside the Docker container
+- **[US-010]** Add `tests/Action/AssignColorsByDayOfWeekTest.php` — 6 unit tests covering all fixed behaviour: `hasRequiredCondition()` → true for weekday with configured color; → false for weekday with no color; → false for weekend with no color; → false for zero `date_due`; → false when task already has non-default color; `doAction()` calls `taskModificationModel->update()` with the correct `color_id`
 - **[US-009]** Add `LICENSE` file with standard MIT text (year 2026, author Brad Campbell) — `README.md` already stated MIT but no file existed (closes GAP-15)
 
 ### Changed

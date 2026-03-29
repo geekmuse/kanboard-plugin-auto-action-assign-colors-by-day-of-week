@@ -130,8 +130,8 @@
       ],
       "notes": "GAP-08 (mixed indentation), GAP-10 (phantom import), GAP-11 (loose ==). Sequenced after US-003 so the style pass runs on stabilised code.",
       "startedAt": "2026-03-29T06:06:58.648Z",
-      "updatedAt": "2026-03-29T09:45:00.000Z",
-      "completedAt": "2026-03-29T09:45:00.000Z"
+      "updatedAt": "2026-03-29T06:09:23.889Z",
+      "completedAt": "2026-03-29T06:09:23.889Z"
     },
     {
       "id": "US-007",
@@ -145,11 +145,14 @@
         "`ralphi check` passes"
       ],
       "priority": 7,
-      "status": "open",
+      "status": "done",
       "dependsOn": [
         "US-006"
       ],
-      "notes": "GAP-09 (no PHPDoc). Sequenced after US-006 so the style pass has already normalized indentation."
+      "notes": "GAP-09 (no PHPDoc). Sequenced after US-006 so the style pass has already normalized indentation.",
+      "startedAt": "2026-03-29T06:09:23.964Z",
+      "updatedAt": "2026-03-29T06:11:52.561Z",
+      "completedAt": "2026-03-29T06:11:52.561Z"
     },
     {
       "id": "US-008",
@@ -164,11 +167,14 @@
         "`ralphi check` passes"
       ],
       "priority": 8,
-      "status": "open",
+      "status": "done",
       "dependsOn": [
         "US-003"
       ],
-      "notes": "GAP-12 (date_due semantics undocumented). Low-risk doc-only change, sequenced after core fixes for accuracy."
+      "notes": "GAP-12 (date_due semantics undocumented). Low-risk doc-only change, sequenced after core fixes for accuracy.",
+      "startedAt": "2026-03-29T06:11:52.640Z",
+      "updatedAt": "2026-03-29T06:14:15.112Z",
+      "completedAt": "2026-03-29T06:14:15.112Z"
     },
     {
       "id": "US-009",
@@ -181,9 +187,12 @@
         "`ralphi check` passes"
       ],
       "priority": 9,
-      "status": "open",
+      "status": "done",
       "dependsOn": [],
-      "notes": "GAP-15 (no LICENSE), GAP-16 (wrong homepage). Trivial independent tasks; grouped for efficiency."
+      "notes": "GAP-15 (no LICENSE), GAP-16 (wrong homepage). Trivial independent tasks; grouped for efficiency.",
+      "startedAt": "2026-03-29T06:14:15.215Z",
+      "updatedAt": "2026-03-29T06:15:29.083Z",
+      "completedAt": "2026-03-29T06:15:29.083Z"
     },
     {
       "id": "US-010",
@@ -197,13 +206,16 @@
         "`ralphi check` passes"
       ],
       "priority": 10,
-      "status": "open",
+      "status": "in_progress",
       "dependsOn": [
         "US-003",
         "US-004",
         "US-005"
       ],
-      "notes": "GAP-13 (no tests). Sequenced after US-003/004/005 so tests cover the fully corrected behaviour, not intermediate buggy states."
+      "notes": "GAP-13 (no tests). Sequenced after US-003/004/005 so tests cover the fully corrected behaviour, not intermediate buggy states.",
+      "startedAt": "2026-03-29T06:15:29.180Z",
+      "updatedAt": "2026-03-29T06:15:29.180Z",
+      "completedAt": null
     },
     {
       "id": "US-011",
