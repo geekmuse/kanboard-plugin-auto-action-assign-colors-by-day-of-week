@@ -206,14 +206,16 @@ When picking up work:
 <!-- Agents: update this section as work progresses -->
 <!-- For detailed task breakdowns, see docs/tasks/ -->
 
+All gap-analysis remediation stories delivered in v0.2.0. No open items.
+
 - [x] **US-001** Replace raw SQL with getParam() API (GAP-01, GAP-04) ✅
-- [ ] **US-002** Fix i18n parameter key strategy — use fixed English keys (GAP-03)
-- [ ] **US-003** Add day-of-week guard to hasRequiredCondition() (GAP-02, GAP-05)
-- [ ] **US-004** Add Saturday and Sunday color parameters (GAP-07)
-- [ ] **US-005** Add configurable timezone action parameter (GAP-06)
-- [ ] **US-006** PSR-12 indentation, phantom import, and strict comparison fixes (GAP-08, GAP-10, GAP-11)
-- [ ] **US-007** Add PHPDoc blocks to all classes and methods (GAP-09)
-- [ ] **US-008** Clarify date_due semantics in description and docs (GAP-12)
-- [ ] **US-009** Add LICENSE file and fix plugin homepage URL (GAP-15, GAP-16)
-- [ ] **US-010** Add composer.json and PHPUnit test suite (GAP-13)
-- [ ] **US-011** Add CI pipeline (GAP-14)
+- [x] **US-002** Fix i18n parameter key strategy — use fixed English keys (GAP-03) ✅
+- [x] **US-003** Add day-of-week guard to hasRequiredCondition() (GAP-02, GAP-05) ✅
+- [x] **US-004** Add Saturday and Sunday color parameters (GAP-07) ✅
+- [x] **US-005** Add configurable timezone action parameter (GAP-06) ✅
+- [x] **US-006** PSR-12 indentation, phantom import, and strict comparison fixes (GAP-08, GAP-10, GAP-11) ✅
+- [x] **US-007** Add PHPDoc blocks to all classes and methods (GAP-09) ✅
+- [x] **US-008** Clarify date_due semantics in description and docs (GAP-12) ✅
+- [x] **US-009** Add LICENSE file and fix plugin homepage URL (GAP-15, GAP-16) ✅
+- [x] **US-010** Add composer.json and PHPUnit test suite (GAP-13) ✅
+- [x] **US-011** Add CI pipeline (GAP-14) ✅

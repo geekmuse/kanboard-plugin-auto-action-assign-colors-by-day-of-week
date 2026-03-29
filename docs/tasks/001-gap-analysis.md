@@ -1,7 +1,10 @@
 ---
 date_created: 2026-03-29
 date_modified: 2026-03-29
-status: active
+
+> **Status: deprecated** — All 15 tasks (T-01–T-15) delivered in v0.2.0 via
+> `ralph/gap-analysis-remediation`. Kept for historical reference.
+status: deprecated
 audience: both
 cross_references:
   - docs/001-architecture.md
