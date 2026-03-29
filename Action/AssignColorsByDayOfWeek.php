@@ -71,11 +71,23 @@ class AssignColorsByDayOfWeek extends Base
 
     public function hasRequiredCondition(array $data)
     {
-        return (
+        if (
             $data['task']['color_id'] == $this->colorModel->getDefaultColor()
-            and isset($data['task']['date_due'])
-            and $data['task']['date_due'] != 0
-            and $data['task']['date_due'] != ''
-        );
+            && isset($data['task']['date_due'])
+            && $data['task']['date_due'] != 0
+            && $data['task']['date_due'] != ''
+        ) {
+            // Resolve the day of week from the due date and verify that a color
+            // is configured for that day. Days with no configured parameter
+            // (e.g. Saturday, Sunday) cause getParam() to return null, so this
+            // returns false and prevents doAction() from writing a null color_id
+            // to the database (closes GAP-02, GAP-05).
+            $dt = new DateTime('now', new DateTimeZone('America/New_York'));
+            $dt->setTimestamp((int) $data['task']['date_due']);
+            $day = $dt->format('l');
+            $color = $this->getParam($day);
+            return $color !== null && $color !== '';
+        }
+        return false;
     }
 }
