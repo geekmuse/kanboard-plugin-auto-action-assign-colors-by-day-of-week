@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **[US-011]** Add Gitea Actions CI pipeline at `.gitea/workflows/ci.yml` — triggers on push and pull request to `main`; five stages: PHP syntax lint (kanboard/kanboard image with entrypoint override), Composer dependency install, PHPCS PSR-12 check, PHPStan level-5 static analysis, and PHPUnit unit tests (closes GAP-14)
 - **[US-010]** Add `composer.json` with `phpunit/phpunit ^11.0` and `phpstan/phpstan ^1.10` as dev dependencies, PSR-4 autoloading for the plugin namespace and test namespace, and a `test` Composer script (closes GAP-13 infrastructure)
 - **[US-010]** Add `phpunit.xml.dist` PHPUnit configuration with bootstrap, testdox output, and source coverage configuration
 - **[US-010]** Add `phpstan.neon` configuration pointing at `Plugin.php` and `Action/` at level 5; uses `tests/bootstrap.php` as bootstrapFiles to load Kanboard class stubs (or Kanboard's real autoloader when running in the Docker image)
