@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **[US-001]** Replace raw SQL helpers with `getParam()` API: removed `projectHasCustomColors()` and `getColorSettings()` private methods; `getColorForDay()` now reads colors via `$this->getParam(t($dayOfWeek))` with no DB queries (fixes GAP-01 SQL injection, GAP-04 bypassing ActionManager API)
+- **[US-001]** Remove `use PDO` import (no longer needed)
+- **[US-001]** Normalize PSR-12 brace style and 4-space indentation in `Plugin.php` and `Action/AssignColorsByDayOfWeek.php`
+
 ### Added
 - Initial project scaffold with documentation and conventions
 - `README.md` — project overview, setup, and usage
