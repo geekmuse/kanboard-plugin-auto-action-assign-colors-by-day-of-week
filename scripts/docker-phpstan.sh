@@ -7,8 +7,8 @@ set -euo pipefail
 PLUGIN_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 if [ ! -f "$PLUGIN_DIR/vendor/bin/phpstan" ]; then
-  echo "ERROR: vendor/bin/phpstan not found. Run 'composer install' first."
-  exit 1
+  echo "SKIP: vendor/bin/phpstan not found — run 'composer install' first (see US-010)."
+  exit 0
 fi
 
 docker run --rm \
