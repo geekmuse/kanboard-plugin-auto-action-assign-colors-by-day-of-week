@@ -1,0 +1,189 @@
+{
+  "project": "plugin-auto-action-assign-colors-by-day-of-week",
+  "branchName": "ralph/gap-analysis-remediation",
+  "description": "Close all gaps identified in docs/tasks/001-gap-analysis.md: replace raw SQL with the getParam() API, fix the i18n key mismatch, add a day-of-week guard to prevent weekend crashes and null color_id writes, add Saturday/Sunday and configurable timezone support, apply PSR-12 throughout, add PHPDoc, tests, and CI.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Replace raw SQL helpers with getParam() API",
+      "description": "Delete the private methods `projectHasCustomColors()` and `getColorSettings()`. Replace the entire `getColorForDay()` implementation with direct `$this->getParam()` calls — ActionManager already populates `$this->params` for the current action instance before `execute()` is called, so no DB queries are needed. Confirm no raw SQL string interpolation remains anywhere in the action class.",
+      "acceptanceCriteria": [
+        "`projectHasCustomColors()` method is removed",
+        "`getColorSettings()` method is removed",
+        "`getColorForDay()` (or its inline replacement) reads colors via `$this->getParam($day)` with no SQL queries",
+        "No `$this->db->getConnection()->query(...)` calls remain in the action class",
+        "`use PDO` import is removed (no longer needed)",
+        "`ralphi check` passes (lint + phpcs)"
+      ],
+      "priority": 1,
+      "status": "open",
+      "dependsOn": [],
+      "notes": "GAP-01 (SQL injection), GAP-04 (bypasses getParam API). Confirmed via Kanboard source: ActionManager::attachEvents() calls setParam($name, $value) for every action_has_params row for the specific action_id before registering the listener."
+    },
+    {
+      "id": "US-002",
+      "title": "Fix i18n parameter key strategy — use fixed English keys",
+      "description": "Change `getActionRequiredParameters()` to use fixed English strings as keys instead of `t('Monday')` etc. The translated day names are stored as `action_has_params.name`; using `t()` means non-English installations store e.g. 'Lundi' but the day-of-week lookup always produces English names from `DateTime::format('l')`, causing a permanent mismatch. Switch to fixed English keys on both sides so the lookup is always consistent regardless of locale. Document this as a breaking change for any existing non-English configurations.",
+      "acceptanceCriteria": [
+        "`getActionRequiredParameters()` returns keys `'Monday'`, `'Tuesday'`, `'Wednesday'`, `'Thursday'`, `'Friday'` (plain strings, no `t()` wrapper on the keys)",
+        "The day-of-week lookup uses the same plain English strings (matching `DateTime::format('l')` output)",
+        "A code comment explains why `t()` is intentionally not used on parameter keys",
+        "CHANGELOG.md updated noting the breaking change for non-English installations",
+        "`ralphi check` passes"
+      ],
+      "priority": 2,
+      "status": "open",
+      "dependsOn": ["US-001"],
+      "notes": "GAP-03 (i18n failure). DateTime::format('l') always returns English day names regardless of PHP locale. Storing translated names as param keys creates an unresolvable mismatch. Fixed English keys on both sides is the simplest correct approach."
+    },
+    {
+      "id": "US-003",
+      "title": "Add day-of-week guard to hasRequiredCondition()",
+      "description": "Add a guard in `hasRequiredCondition()` that resolves the day of week from the `date_due` timestamp and checks that `$this->getParam($day)` is not null. This prevents `doAction()` from being called for days with no configured color (currently: weekends), closing the silent null `color_id` corruption bug. Remove the redundant `projectHasCustomColors()` check (already deleted in US-001). `doAction()` becomes unconditional — it can trust the condition fully guards every failure path.",
+      "acceptanceCriteria": [
+        "`hasRequiredCondition()` resolves the day of week from `date_due` and returns `false` when `$this->getParam($day)` is null or empty",
+        "`hasRequiredCondition()` no longer calls `projectHasCustomColors()` (removed in US-001)",
+        "`doAction()` contains no conditional logic — it calls the color lookup and update unconditionally",
+        "Tasks with a Saturday or Sunday due date: `hasRequiredCondition()` returns `false`, task color is unchanged",
+        "Tasks with a weekday due date and configured color: `hasRequiredCondition()` returns `true`, color is assigned correctly",
+        "`ralphi check` passes"
+      ],
+      "priority": 3,
+      "status": "open",
+      "dependsOn": ["US-001", "US-002"],
+      "notes": "GAP-02 (weekend crash), GAP-05 (no day guard). Closes the null color_id corruption path. doAction() should be a clean unconditional call per Kanboard action lifecycle conventions."
+    },
+    {
+      "id": "US-004",
+      "title": "Add Saturday and Sunday color parameters",
+      "description": "Add `'Saturday'` and `'Sunday'` to `getActionRequiredParameters()` so users can configure weekend colors. Provide a sentinel 'no change' option — an empty string value or a dedicated 'none' entry in the color list — so users can leave weekend tasks uncolored. Update the day-of-week guard in `hasRequiredCondition()` (US-003) to treat the sentinel value as a skip (return false), preserving the 'do nothing on weekends' default.",
+      "acceptanceCriteria": [
+        "`getActionRequiredParameters()` returns entries for all seven days: Monday through Sunday",
+        "A 'no change' / 'none' sentinel option is available in the color selection for each day",
+        "`hasRequiredCondition()` returns `false` when the configured value for the resolved day is the sentinel",
+        "Tasks with a Saturday due date and a color configured for Saturday: color is assigned correctly",
+        "Tasks with a Saturday due date and 'none' configured for Saturday: color is unchanged",
+        "CHANGELOG.md updated under [Unreleased]",
+        "`ralphi check` passes"
+      ],
+      "priority": 4,
+      "status": "open",
+      "dependsOn": ["US-003"],
+      "notes": "GAP-07 (no Sat/Sun support). Closes the weekend feature gap opened up once GAP-02/05 are fixed."
+    },
+    {
+      "id": "US-005",
+      "title": "Add configurable timezone action parameter",
+      "description": "Replace the hardcoded `'America/New_York'` timezone with a new action parameter `'Timezone'` that defaults to the PHP server timezone (`date_default_timezone_get()`). Add `'Timezone'` to `getActionRequiredParameters()` with an appropriate input type (free-text string or a predefined list of common IANA timezone identifiers). Use the configured timezone when constructing the `DateTime` object for day-of-week resolution.",
+      "acceptanceCriteria": [
+        "`getActionRequiredParameters()` includes a `'Timezone'` parameter",
+        "No hardcoded timezone string remains in the action class",
+        "Day-of-week resolution uses the timezone from `$this->getParam('Timezone')`",
+        "When the Timezone parameter is empty or null, falls back to `date_default_timezone_get()`",
+        "CHANGELOG.md updated under [Unreleased]",
+        "`ralphi check` passes"
+      ],
+      "priority": 5,
+      "status": "open",
+      "dependsOn": ["US-003"],
+      "notes": "GAP-06 (hardcoded timezone). Independent of US-004; both depend on US-003 only."
+    },
+    {
+      "id": "US-006",
+      "title": "PSR-12 indentation, phantom import, and strict comparison fixes",
+      "description": "Mechanical style-only pass. (1) Run PHP-CS-Fixer with `--rules=@PSR12` to normalize all indentation to 4 spaces — both files currently mix tabs and spaces. (2) Remove `use Kanboard\\Model\\ColorModel` (phantom import — `$this->colorModel` is resolved via the DI container magic `__get`, not this `use` statement) and add a `@property \\Kanboard\\Model\\ColorModel $colorModel` annotation to the class PHPDoc. (3) Change the loose `==` to `===` in the `hasRequiredCondition()` `color_id` comparison.",
+      "acceptanceCriteria": [
+        "All PHP files use 4-space indentation with no tab characters",
+        "`use Kanboard\\Model\\ColorModel` is removed from the action class",
+        "A `@property \\Kanboard\\Model\\ColorModel $colorModel` annotation is present on the class (added as part of US-007 PHPDoc, or added here if US-007 has not run yet)",
+        "The `color_id` comparison in `hasRequiredCondition()` uses `===`",
+        "`ralphi check` passes (phpcs reports zero PSR-12 violations)"
+      ],
+      "priority": 6,
+      "status": "open",
+      "dependsOn": ["US-003"],
+      "notes": "GAP-08 (mixed indentation), GAP-10 (phantom import), GAP-11 (loose ==). Sequenced after US-003 so the style pass runs on stabilised code."
+    },
+    {
+      "id": "US-007",
+      "title": "Add PHPDoc blocks to all classes and methods",
+      "description": "Add class-level and method-level PHPDoc to both `Plugin.php` and `Action/AssignColorsByDayOfWeek.php`. Each class needs a `@package` and `@author` tag. Each method needs a one-line description, `@param` with types and names, and `@return` with type. Include a `@property` annotation for `$colorModel` on the action class (if not already added in US-006).",
+      "acceptanceCriteria": [
+        "All public and private methods in both files have PHPDoc blocks with `@param`, `@return`, and a description",
+        "Both classes have class-level PHPDoc with `@package` and `@author`",
+        "Action class has `@property \\Kanboard\\Model\\ColorModel $colorModel` on the class PHPDoc",
+        "PHPStan level-5 reports no new errors introduced",
+        "`ralphi check` passes"
+      ],
+      "priority": 7,
+      "status": "open",
+      "dependsOn": ["US-006"],
+      "notes": "GAP-09 (no PHPDoc). Sequenced after US-006 so the style pass has already normalized indentation."
+    },
+    {
+      "id": "US-008",
+      "title": "Clarify date_due semantics in description and documentation",
+      "description": "The plugin name and short description say 'by day of week' without specifying which day. Users reasonably expect colors to reflect the creation day; the implementation uses the due date's day. Update `getDescription()` to say 'based on the day of the week of the task\\'s due date'. Update `README.md` usage section and `docs/001-architecture.md` data flow section to make the due-date basis explicit.",
+      "acceptanceCriteria": [
+        "`getDescription()` return value explicitly mentions 'due date'",
+        "`README.md` usage walkthrough clarifies that color is determined by the due date's day of week",
+        "`docs/001-architecture.md` data flow description is updated to reflect due-date basis",
+        "`docs/001-architecture.md` front-matter `date_modified` is bumped to today",
+        "CHANGELOG.md updated under [Unreleased]",
+        "`ralphi check` passes"
+      ],
+      "priority": 8,
+      "status": "open",
+      "dependsOn": ["US-003"],
+      "notes": "GAP-12 (date_due semantics undocumented). Low-risk doc-only change, sequenced after core fixes for accuracy."
+    },
+    {
+      "id": "US-009",
+      "title": "Add LICENSE file and fix plugin homepage URL",
+      "description": "Add a standard MIT `LICENSE` file (author: Brad Campbell, year: 2026) — README.md already states MIT but no file exists. Update `getPluginHomepage()` in `Plugin.php` to return the repository URL instead of the personal site.",
+      "acceptanceCriteria": [
+        "A `LICENSE` file exists at the repo root with standard MIT text, year 2026, and author Brad Campbell",
+        "`Plugin.php::getPluginHomepage()` returns the repository HTTPS URL",
+        "CHANGELOG.md updated under [Unreleased]",
+        "`ralphi check` passes"
+      ],
+      "priority": 9,
+      "status": "open",
+      "dependsOn": [],
+      "notes": "GAP-15 (no LICENSE), GAP-16 (wrong homepage). Trivial independent tasks; grouped for efficiency."
+    },
+    {
+      "id": "US-010",
+      "title": "Add composer.json and PHPUnit test suite",
+      "description": "Create `composer.json` with `phpunit/phpunit` and `phpstan/phpstan` as dev dependencies, PSR-4 autoloading for the plugin namespace, and a `test` script. Create `tests/Action/AssignColorsByDayOfWeekTest.php` with unit tests covering the now-fixed behaviour: (1) `hasRequiredCondition()` returns true for weekday with configured color; (2) returns false for weekday with no configured color; (3) returns false for weekend day; (4) returns false for zero due date; (5) returns false when task has non-default color; (6) `doAction()` calls `taskModificationModel->update()` with the correct `color_id`.",
+      "acceptanceCriteria": [
+        "`composer.json` exists with `phpunit/phpunit` and `phpstan/phpstan` dev dependencies and correct PSR-4 autoload mapping",
+        "`tests/Action/AssignColorsByDayOfWeekTest.php` exists and covers all six test cases listed above",
+        "`./vendor/bin/phpunit` exits 0 with all tests green",
+        "`./vendor/bin/phpstan analyse --level=5` exits 0 with no errors",
+        "`ralphi check` passes"
+      ],
+      "priority": 10,
+      "status": "open",
+      "dependsOn": ["US-003", "US-004", "US-005"],
+      "notes": "GAP-13 (no tests). Sequenced after US-003/004/005 so tests cover the fully corrected behaviour, not intermediate buggy states."
+    },
+    {
+      "id": "US-011",
+      "title": "Add CI pipeline",
+      "description": "Add a Gitea Actions (or GitHub Actions) CI workflow at `.gitea/workflows/ci.yml` (or `.github/workflows/ci.yml`) that runs on push and pull request to `main`. Pipeline stages: (1) PHP syntax check via `bash scripts/docker-lint.sh`; (2) Composer install; (3) PHPCS via `bash scripts/docker-phpcs.sh`; (4) PHPStan via `bash scripts/docker-phpstan.sh`; (5) PHPUnit via `bash scripts/docker-test.sh`.",
+      "acceptanceCriteria": [
+        "A CI workflow file exists at `.gitea/workflows/ci.yml` or `.github/workflows/ci.yml`",
+        "Workflow triggers on push and pull_request to main",
+        "All five pipeline stages are defined: lint, composer install, phpcs, phpstan, phpunit",
+        "Workflow uses the kanboard/kanboard Docker image with entrypoint override for lint stage",
+        "CHANGELOG.md updated under [Unreleased]",
+        "`ralphi check` passes"
+      ],
+      "priority": 11,
+      "status": "open",
+      "dependsOn": ["US-010"],
+      "notes": "GAP-14 (no CI). Final story — depends on test suite (US-010) being in place first."
+    }
+  ]
+}
