@@ -12,8 +12,10 @@ configuration screens needed.
 
 ## Features
 
-- Registers a new automatic action: **"Assign automatically a color based on the day of the week"**
-- Configurable Mon–Fri color mapping per project (choose any Kanboard color for each weekday)
+- Registers a new automatic action: **"Assign a color based on the day of the week of the task's due date"**
+- Configurable Mon–Sun color mapping per project (choose any Kanboard color for each day, or 'No change' to leave weekends untouched)
+- Configurable timezone per action instance (defaults to the PHP server timezone)
+- Color is determined by the **due date's** day of week — not the creation date
 - Only fires when a task has the default color and a non-zero due date, preventing unwanted overrides
 - Uses Kanboard's existing action parameter storage — no custom database tables
 
@@ -43,12 +45,19 @@ your Kanboard installation.
 ### Usage
 
 1. Navigate to a project → **Actions** → **Automatic Actions**
-2. Add a new action: select **"Assign automatically a color based on the day of the week"**
-3. Choose a color for each weekday (Monday through Friday)
-4. Save the action
+2. Add a new action: select **"Assign a color based on the day of the week of the task's due date"**
+3. Choose a color for each day of the week (Monday through Sunday); select **"No change"** for any day you want to leave untouched
+4. Optionally select a **Timezone** (defaults to the PHP server timezone)
+5. Save the action
 
-When tasks are created with a due date falling on a configured weekday, the plugin
-will automatically set the task color to the configured value for that day.
+> **Important:** the color assigned is based on the **due date's** day of week, not
+> the day the task is created. A task created on Monday with a due date of Wednesday
+> will receive Wednesday's configured color.
+
+When tasks are created with a due date falling on a configured day, the plugin
+will automatically set the task color to the configured value for that day. Tasks
+with a due date on a day configured as 'No change', or tasks with no due date,
+are left unmodified.
 
 ## Documentation
 

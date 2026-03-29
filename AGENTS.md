@@ -195,20 +195,25 @@ When picking up work:
 
 ### Key Pitfalls to Avoid
 
-- **SQL injection:** `Action/AssignColorsByDayOfWeek.php` currently uses raw string
-  interpolation in SQL queries — any changes to query logic must use prepared statements
-- **Plugin directory name:** Must be `AssignColorsByDayOfWeek` (not the repo name) for
-  Kanboard's namespace resolution to work
-- **Timezone:** Day-of-week resolution is hardcoded to `America/New_York` — see
-  `docs/adrs/` for the decision record when this is addressed
+- **getParam API (IMPORTANT):** Use `$this->getParam($key)` to read action parameters — ActionManager pre-populates `$this->params` from `action_has_params` before `execute()` is called. Never query the DB to read action params.
+- **Parameter key strategy:** The keys in `getActionRequiredParameters()` are stored verbatim as `action_has_params.name`. The key passed to `getParam()` must exactly match. Currently using `t('Monday')` etc. — US-002 will change to fixed English strings.
+- **PSR-12 brace style:** PHP classes AND methods require opening brace on its own line (Allman style). Run `docker run --rm -v $(pwd):/app cytopia/phpcs:latest --standard=PSR12 /app/Plugin.php /app/Action/` to verify when vendor/ is not yet set up.
+- **Plugin directory name:** Must be `AssignColorsByDayOfWeek` (not the repo name) for Kanboard's namespace resolution to work
+- **Timezone:** Day-of-week resolution is still hardcoded to `America/New_York` — will be made configurable in US-005
 
 ## Current Work Items
 
 <!-- Agents: update this section as work progresses -->
 <!-- For detailed task breakdowns, see docs/tasks/ -->
 
-- [ ] Add PHPUnit and composer.json for dev dependencies
-- [ ] Replace raw SQL with prepared statements (security fix)
-- [ ] Make timezone configurable
-- [ ] Add Saturday/Sunday support
-- [ ] Set up CI pipeline
+- [x] **US-001** Replace raw SQL with getParam() API (GAP-01, GAP-04) ✅
+- [ ] **US-002** Fix i18n parameter key strategy — use fixed English keys (GAP-03)
+- [ ] **US-003** Add day-of-week guard to hasRequiredCondition() (GAP-02, GAP-05)
+- [ ] **US-004** Add Saturday and Sunday color parameters (GAP-07)
+- [ ] **US-005** Add configurable timezone action parameter (GAP-06)
+- [ ] **US-006** PSR-12 indentation, phantom import, and strict comparison fixes (GAP-08, GAP-10, GAP-11)
+- [ ] **US-007** Add PHPDoc blocks to all classes and methods (GAP-09)
+- [ ] **US-008** Clarify date_due semantics in description and docs (GAP-12)
+- [ ] **US-009** Add LICENSE file and fix plugin homepage URL (GAP-15, GAP-16)
+- [ ] **US-010** Add composer.json and PHPUnit test suite (GAP-13)
+- [ ] **US-011** Add CI pipeline (GAP-14)

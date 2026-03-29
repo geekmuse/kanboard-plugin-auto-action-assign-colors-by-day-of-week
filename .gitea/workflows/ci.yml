@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Stage 1 — PHP syntax check
+      # Uses kanboard/kanboard image with entrypoint override (default entrypoint
+      # starts Apache and runs forever; we override to /bin/sh for one-shot use).
+      - name: Lint — PHP syntax check
+        run: bash scripts/docker-lint.sh
+
+      # Stage 2 — Install Composer dependencies
+      # vendor/ is not committed (.gitignore); install it here so the remaining
+      # stages can find vendor/bin/phpcs, vendor/bin/phpstan, vendor/bin/phpunit.
+      - name: Install Composer dependencies
+        run: |
+          docker run --rm \
+            -v "$PWD":/app \
+            composer:2 \
+            install --no-interaction --prefer-dist --no-progress
+
+      # Stage 3 — PSR-12 code style check
+      - name: PHPCS — PSR-12 style check
+        run: bash scripts/docker-phpcs.sh
+
+      # Stage 4 — Static analysis (PHPStan level 5)
+      # Uses php:8.4-cli — kanboard/kanboard lacks the tokenizer extension
+      # required by PHPStan.
+      - name: PHPStan — static analysis
+        run: bash scripts/docker-phpstan.sh
+
+      # Stage 5 — Unit tests
+      # Uses php:8.4-cli for the same reason as PHPStan above.
+      - name: PHPUnit — unit tests
+        run: bash scripts/docker-test.sh

@@ -1,0 +1,10 @@
+parameters:
+    level: 5
+    paths:
+        - Plugin.php
+        - Action/
+    # Bootstrap loads the Kanboard autoloader (Docker) or minimal class stubs
+    # (local dev) so that PHPStan can resolve Kanboard base-class types.
+    # It also defines the t() translation helper stub.
+    bootstrapFiles:
+        - tests/bootstrap.php
