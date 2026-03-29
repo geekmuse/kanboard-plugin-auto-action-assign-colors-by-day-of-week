@@ -288,7 +288,7 @@
     {
       "id": "iter-1ba16fdd",
       "phase": "ralphi-loop-iteration",
-      "status": "running",
+      "status": "completed",
       "sessionKey": "/Users/bradmatic/.pi/agent/sessions/--Users-bradmatic-Dev-geekmuse-kanboard-plugin-auto-action-assign-colors-by-day-of-week--/2026-03-29T06-15-29-179Z_a8369b96-5aff-47b4-b11b-e7d2ed8ccc01.jsonl",
       "sessionFile": "/Users/bradmatic/.pi/agent/sessions/--Users-bradmatic-Dev-geekmuse-kanboard-plugin-auto-action-assign-colors-by-day-of-week--/2026-03-29T06-15-29-179Z_a8369b96-5aff-47b4-b11b-e7d2ed8ccc01.jsonl",
       "checkpointLeafId": null,
@@ -299,7 +299,57 @@
       "loopId": "loop-5fddd6b3",
       "iteration": 10,
       "storyId": "US-010",
-      "storyTitle": "Add composer.json and PHPUnit test suite"
+      "storyTitle": "Add composer.json and PHPUnit test suite",
+      "summary": "US-010 complete: Added composer.json (phpunit/phpunit ^11.0, phpstan/phpstan ^1.10, PSR-4 autoloading), phpunit.xml.dist, phpstan.neon, tests/bootstrap.php (loads Kanboard autoloader in Docker or stubs locally), tests/Stubs/KanboardStubs.php (minimal Kanboard class stubs), and tests/Action/AssignColorsByDayOfWeekTest.php (6 tests, 8 assertions — all green). Updated docker-test.sh and docker-phpstan.sh to use php:8.4-cli (kanboard/kanboard image lacks tokenizer). Added .gitignore. All quality checks pass. US-011 (CI pipeline) is the only remaining open story.",
+      "outputs": [
+        "composer.json",
+        "phpunit.xml.dist",
+        "phpstan.neon",
+        ".gitignore",
+        "tests/bootstrap.php",
+        "tests/Stubs/KanboardStubs.php",
+        "tests/Action/AssignColorsByDayOfWeekTest.php",
+        "scripts/docker-test.sh",
+        "scripts/docker-phpstan.sh",
+        "CHANGELOG.md",
+        ".ralphi/prd.json",
+        ".ralphi/progress.txt"
+      ],
+      "complete": false,
+      "reviewPasses": 1,
+      "trajectory": "ON_TRACK",
+      "nextIterationPlan": "Implement US-011: Add CI pipeline (.gitea/workflows/ci.yml or .github/workflows/ci.yml) with all 5 stages: lint, composer install, phpcs, phpstan, phpunit. Depends on US-010 being done (now complete).",
+      "completedAt": "2026-03-29T06:36:09.896Z"
+    },
+    {
+      "id": "iter-77b835a3",
+      "phase": "ralphi-loop-iteration",
+      "status": "completed",
+      "sessionKey": "/Users/bradmatic/.pi/agent/sessions/--Users-bradmatic-Dev-geekmuse-kanboard-plugin-auto-action-assign-colors-by-day-of-week--/2026-03-29T06-36-10-049Z_c330511e-c10d-4fd2-ad30-49dc9ce6bde4.jsonl",
+      "sessionFile": "/Users/bradmatic/.pi/agent/sessions/--Users-bradmatic-Dev-geekmuse-kanboard-plugin-auto-action-assign-colors-by-day-of-week--/2026-03-29T06-36-10-049Z_c330511e-c10d-4fd2-ad30-49dc9ce6bde4.jsonl",
+      "checkpointLeafId": null,
+      "checkpointSessionFile": "/Users/bradmatic/.pi/agent/sessions/--Users-bradmatic-Dev-geekmuse-kanboard-plugin-auto-action-assign-colors-by-day-of-week--/2026-03-29T04-45-39-442Z_23cf5cd5-f9db-41f0-8f71-94b1537f8885.jsonl",
+      "cwd": "/Users/bradmatic/Dev/geekmuse-kanboard/plugin-auto-action-assign-colors-by-day-of-week",
+      "createdAt": "2026-03-29T06:36:10.049Z",
+      "autoConfirm": true,
+      "loopId": "loop-5fddd6b3",
+      "iteration": 11,
+      "storyId": "US-011",
+      "storyTitle": "Add CI pipeline",
+      "summary": "Implemented US-011: Add CI pipeline. Created `.gitea/workflows/ci.yml` with Gitea Actions (GitHub Actions compatible) triggering on push/pull_request to main, with 5 stages: PHP lint (kanboard/kanboard with entrypoint override), Composer install (composer:2 image), PHPCS, PHPStan, PHPUnit. Also fixed `scripts/docker-phpcs.sh` to use `cytopia/phpcs:latest` directly (removing the vendor/bin/phpcs skip-guard that was silently always skipping since phpcs was never in composer.json). All quality checks pass: lint ✓, phpcs ✓ (0 violations), phpstan ✓ (0 errors), phpunit ✓ (6 tests, 8 assertions). CHANGELOG.md updated. All 11 PRD user stories are now done.",
+      "outputs": [
+        ".gitea/workflows/ci.yml",
+        "scripts/docker-phpcs.sh",
+        "CHANGELOG.md",
+        ".ralphi/prd.json",
+        ".ralphi/progress.txt"
+      ],
+      "complete": true,
+      "reviewPasses": 1,
+      "trajectory": "ON_TRACK",
+      "reflectionSummary": "All 11 user stories from the gap-analysis-remediation PRD are now complete. The plugin has been fully remediated: SQL injection removed, getParam() API used throughout, i18n key mismatch fixed, weekend guard added, Saturday/Sunday support added, configurable timezone, PSR-12 compliance, PHPDoc, LICENSE, homepage URL, composer.json, PHPUnit test suite, and CI pipeline. The codebase is in a production-ready state.",
+      "nextIterationPlan": "No stories remain. Loop is complete.",
+      "completedAt": "2026-03-29T06:41:22.416Z"
     }
   ],
   "loops": [
@@ -307,8 +357,8 @@
       "id": "loop-5fddd6b3",
       "controllerSessionFile": "/Users/bradmatic/.pi/agent/sessions/--Users-bradmatic-Dev-geekmuse-kanboard-plugin-auto-action-assign-colors-by-day-of-week--/2026-03-29T04-45-39-442Z_23cf5cd5-f9db-41f0-8f71-94b1537f8885.jsonl",
       "maxIterations": 50,
-      "iteration": 10,
-      "active": true,
+      "iteration": 11,
+      "active": false,
       "stopRequested": false,
       "createdAt": "2026-03-29T05:50:30.693Z",
       "iterationSessionFiles": [
@@ -321,11 +371,11 @@
         "/Users/bradmatic/.pi/agent/sessions/--Users-bradmatic-Dev-geekmuse-kanboard-plugin-auto-action-assign-colors-by-day-of-week--/2026-03-29T06-09-23-963Z_5e0f025e-9ce1-496d-951e-9c5a7003e48e.jsonl",
         "/Users/bradmatic/.pi/agent/sessions/--Users-bradmatic-Dev-geekmuse-kanboard-plugin-auto-action-assign-colors-by-day-of-week--/2026-03-29T06-11-52-639Z_68dc6965-bd6f-4333-9b7d-11d9c1e1babe.jsonl",
         "/Users/bradmatic/.pi/agent/sessions/--Users-bradmatic-Dev-geekmuse-kanboard-plugin-auto-action-assign-colors-by-day-of-week--/2026-03-29T06-14-15-214Z_0664c14e-d909-427f-8ea1-e585cf8fe782.jsonl",
-        "/Users/bradmatic/.pi/agent/sessions/--Users-bradmatic-Dev-geekmuse-kanboard-plugin-auto-action-assign-colors-by-day-of-week--/2026-03-29T06-15-29-179Z_a8369b96-5aff-47b4-b11b-e7d2ed8ccc01.jsonl"
+        "/Users/bradmatic/.pi/agent/sessions/--Users-bradmatic-Dev-geekmuse-kanboard-plugin-auto-action-assign-colors-by-day-of-week--/2026-03-29T06-15-29-179Z_a8369b96-5aff-47b4-b11b-e7d2ed8ccc01.jsonl",
+        "/Users/bradmatic/.pi/agent/sessions/--Users-bradmatic-Dev-geekmuse-kanboard-plugin-auto-action-assign-colors-by-day-of-week--/2026-03-29T06-36-10-049Z_c330511e-c10d-4fd2-ad30-49dc9ce6bde4.jsonl"
       ],
-      "currentIterationStartedAt": "2026-03-29T06:15:29.179Z",
-      "activeIterationSessionFile": "/Users/bradmatic/.pi/agent/sessions/--Users-bradmatic-Dev-geekmuse-kanboard-plugin-auto-action-assign-colors-by-day-of-week--/2026-03-29T06-15-29-179Z_a8369b96-5aff-47b4-b11b-e7d2ed8ccc01.jsonl"
+      "completedAt": "2026-03-29T06:41:22.594Z"
     }
   ],
-  "savedAt": "2026-03-29T06:15:29.181Z"
+  "savedAt": "2026-03-29T06:41:22.630Z"
 }

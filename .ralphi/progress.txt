@@ -78,6 +78,29 @@ Corrective Plan: N/A
   - US-011 (CI pipeline) is now unblocked and is the final open story
 ---
 
+## 2026-03-29 06:50 - US-011
+Session: iter-77b835a3
+Review Outcome: PASS
+Trajectory: ON_TRACK
+Trajectory Notes: N/A
+Corrective Plan: N/A
+- Created `.gitea/workflows/ci.yml` — Gitea Actions workflow (GitHub Actions compatible); triggers on push and pull_request to `main`; five stages: lint, Composer install, phpcs, phpstan, phpunit (closes GAP-14)
+- Lint stage calls `bash scripts/docker-lint.sh` which uses kanboard/kanboard with entrypoint override (Apache default entrypoint bypassed with `/bin/sh`)
+- Composer install stage runs `composer:2` Docker image with the workspace mounted at `/app` — installs `vendor/` so subsequent stages can find `vendor/bin/phpstan` and `vendor/bin/phpunit`
+- PHPCS stage calls `bash scripts/docker-phpcs.sh`; also updated that script to use `cytopia/phpcs:latest` with `--entrypoint /usr/bin/phpcs` directly — removes the `vendor/bin/phpcs` skip-guard that was always skipping (phpcs was never added to composer.json); aligns with Codebase Patterns entry for cytopia/phpcs
+- PHPStan stage calls `bash scripts/docker-phpstan.sh` (uses php:8.4-cli, no kanboard image tokenizer issue)
+- PHPUnit stage calls `bash scripts/docker-test.sh` (uses php:8.4-cli, same reason)
+- All 6 tests (8 assertions) green; phpcs 0 violations; phpstan 0 errors; lint clean
+- Updated CHANGELOG.md under [Unreleased] with US-011 Added entry
+- Files changed: `.gitea/workflows/ci.yml` (new), `scripts/docker-phpcs.sh`, `CHANGELOG.md`
+- **Learnings for future iterations:**
+  - `cytopia/phpcs:latest` image has phpcs at `/usr/bin/phpcs`; use `--entrypoint /usr/bin/phpcs` not `/bin/sh`; the default entrypoint wrapper resolves differently
+  - `composer:2` Docker image: default WORKDIR is `/app`, entrypoint is `composer`; mount workspace at `-v "$PWD":/app` and run `install --no-interaction --prefer-dist --no-progress`
+  - Gitea Actions CI is GitHub Actions compatible — `actions/checkout@v4`, `ubuntu-latest` runner, push/pull_request triggers all work identically
+  - The `vendor/` directory must be installed fresh in CI (it's in .gitignore); add Composer install as an explicit stage before any stages that need vendor/bin tools
+  - phpcs was never in composer.json — the old docker-phpcs.sh skip guard was silently masking this; using a standalone cytopia/phpcs image removes the composer dependency entirely for the style check
+---
+
 ## Codebase Patterns
 - **Timezone resolution helper**: Extract `DateTime` construction + `format('l')` into a shared `resolveDayOfWeek($ts)` private method whenever both `hasRequiredCondition()` and `getColorForDay()` need the day name. This avoids timezone drift and keeps the configurable timezone read in one place.
 - **Timezone parameter list**: `DateTimeZone::listIdentifiers(DateTimeZone::ALL)` + `array_combine($ids, $ids)` provides the full IANA identifier list as a select dropdown. Prepend `'' => t('Server default')` as a sentinel; `resolveDayOfWeek()` falls back to `date_default_timezone_get()` when the param is empty.

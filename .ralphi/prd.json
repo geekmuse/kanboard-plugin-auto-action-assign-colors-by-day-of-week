@@ -214,8 +214,8 @@
       ],
       "notes": "GAP-13 (no tests). Sequenced after US-003/004/005 so tests cover the fully corrected behaviour, not intermediate buggy states.",
       "startedAt": "2026-03-29T06:15:29.180Z",
-      "updatedAt": "2026-03-29T06:32:00.000Z",
-      "completedAt": "2026-03-29T06:32:00.000Z"
+      "updatedAt": "2026-03-29T06:36:09.957Z",
+      "completedAt": "2026-03-29T06:36:09.957Z"
     },
     {
       "id": "US-011",
@@ -230,11 +230,14 @@
         "`ralphi check` passes"
       ],
       "priority": 11,
-      "status": "open",
+      "status": "done",
       "dependsOn": [
         "US-010"
       ],
-      "notes": "GAP-14 (no CI). Final story — depends on test suite (US-010) being in place first."
+      "notes": "GAP-14 (no CI). Final story — depends on test suite (US-010) being in place first.",
+      "startedAt": "2026-03-29T06:36:10.050Z",
+      "updatedAt": "2026-03-29T06:41:22.545Z",
+      "completedAt": "2026-03-29T06:41:22.545Z"
     }
   ]
 }
