@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-03-31
+
+### Added
+- GitHub Actions CI workflow mirroring the existing Gitea pipeline (lint,
+  Composer install, PHPCS, PHPStan, PHPUnit)
+- GitHub Actions release workflow: builds distributable plugin ZIP
+  (`AssignColorsByDayOfWeek-{version}.zip`) and publishes a GitHub Release
+  on semver tags; supports prerelease suffixes (e.g. `v0.2.1-rc.1`)
+- CodeQL SAST workflow — PHP `security-extended` query suite on push/PR
+  to `main` and weekly schedule; results surface in GitHub Security tab
+- `.github/dependabot.yml` — weekly Dependabot PRs for `github-actions`
+  and `composer` ecosystems
+- `SECURITY.md` — supported versions table, private disclosure email,
+  72 h acknowledgement / 14-day resolution SLA
+
+### Changed
+- All GitHub Actions `uses:` references pinned to full commit SHAs
+  (supply-chain hardening; Dependabot will keep them current)
+- Release job now requires manual approval via a `release` GitHub
+  environment before any artifact is published
+
+### Security
+- Enabled GitHub vulnerability alerts and automated security-fix PRs
+- Applied branch protection on `main`: force-pushes blocked, required
+  status check `CI / ci` must pass before merge
+- Added tag protection ruleset (`deletion` + `non_fast_forward` rules
+  on `refs/tags/v*`): existing release tags cannot be deleted or moved
+- Disabled unused repository surface area (wiki, projects)
+
 ## [0.2.0] - 2026-03-29
 
 ### Added
@@ -64,6 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Action/AssignColorsByDayOfWeek.php` — assigns task card colors based on the day of week of the task's due date (Mon–Fri), triggered on `EVENT_CREATE`
 - Configurable per-project day→color mapping via Kanboard's automatic action UI
 
-[Unreleased]: https://github.com/geekmuse/kanboard-plugin-auto-action-assign-colors-by-day-of-week/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/geekmuse/kanboard-plugin-auto-action-assign-colors-by-day-of-week/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/geekmuse/kanboard-plugin-auto-action-assign-colors-by-day-of-week/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/geekmuse/kanboard-plugin-auto-action-assign-colors-by-day-of-week/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/geekmuse/kanboard-plugin-auto-action-assign-colors-by-day-of-week/releases/tag/v0.1.0
