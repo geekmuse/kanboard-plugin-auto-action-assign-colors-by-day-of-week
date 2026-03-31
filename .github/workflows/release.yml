@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      # Build a distributable plugin ZIP.
+      # Kanboard's plugin installer expects a ZIP containing a single root
+      # directory named exactly after the plugin class: AssignColorsByDayOfWeek.
+      # This plugin has no production Composer dependencies (require-dev only),
+      # so vendor/ is intentionally excluded from the archive.
+      - name: Build plugin archive
+        run: |
+          ARCHIVE="AssignColorsByDayOfWeek-${{ steps.version.outputs.version }}.zip"
+          PLUGIN_DIR="AssignColorsByDayOfWeek"
+
+          mkdir -p "dist/$PLUGIN_DIR"
+          cp -r Action "dist/$PLUGIN_DIR/"
+          cp Plugin.php LICENSE README.md CHANGELOG.md composer.json "dist/$PLUGIN_DIR/"
+
+          cd dist
+          zip -r "../$ARCHIVE" "$PLUGIN_DIR/"
+          cd ..
+
+          echo "ARCHIVE=$ARCHIVE" >> "$GITHUB_ENV"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --title "${{ github.ref_name }}" \
+            --generate-notes \
+            "$ARCHIVE"
