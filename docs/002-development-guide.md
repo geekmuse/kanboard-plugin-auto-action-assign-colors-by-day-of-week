@@ -239,7 +239,7 @@ value and update `CHANGELOG.md`:
 
 ```php
 public function getPluginVersion() {
-    return '0.2.0';
+    return '0.2.2';
 }
 ```
 

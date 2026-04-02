@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-04-02
+
+### Changed
+- Bump `actions/checkout` from 4.3.1 to 6.0.2 across all GitHub Actions
+  workflows (`ci.yml`, `codeql.yml`, `release.yml`)
+- Widen `phpstan/phpstan` Composer requirement from `^1.10` to `^1.10 || ^2.0`
+
 ## [0.2.1] - 2026-03-31
 
 ### Added
@@ -93,7 +100,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Action/AssignColorsByDayOfWeek.php` — assigns task card colors based on the day of week of the task's due date (Mon–Fri), triggered on `EVENT_CREATE`
 - Configurable per-project day→color mapping via Kanboard's automatic action UI
 
-[Unreleased]: https://github.com/geekmuse/kanboard-plugin-auto-action-assign-colors-by-day-of-week/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/geekmuse/kanboard-plugin-auto-action-assign-colors-by-day-of-week/compare/v0.2.2...HEAD
+[0.2.2]: https://github.com/geekmuse/kanboard-plugin-auto-action-assign-colors-by-day-of-week/compare/v0.2.1...v0.2.2
 [0.2.1]: https://github.com/geekmuse/kanboard-plugin-auto-action-assign-colors-by-day-of-week/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/geekmuse/kanboard-plugin-auto-action-assign-colors-by-day-of-week/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/geekmuse/kanboard-plugin-auto-action-assign-colors-by-day-of-week/releases/tag/v0.1.0

@@ -9,7 +9,7 @@
 - **Plugin Class:** `AssignColorsByDayOfWeek`
 - **Language:** PHP
 - **Purpose:** Kanboard automation plugin — assigns configurable colors to task cards based on the day of week of the task's due date, triggered at task creation
-- **Current Version:** 0.1.0 (see `Plugin.php` → `getPluginVersion()`)
+- **Current Version:** 0.2.2 (see `Plugin.php` → `getPluginVersion()`)
 - **Kanboard Compatibility:** `>=1.2.19`
 - **Status:** Early development
 
